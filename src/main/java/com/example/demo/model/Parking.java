@@ -6,15 +6,13 @@ import java.util.List;
 
 @Entity
 @Data
-public class Car {
+public class Parking {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String licensePlate;
-    private String brand;
-    private String model;
-    private String color;
+    private String location;
+    private Integer capacity;
     
-    @OneToMany(mappedBy = "car")
+    @OneToMany(mappedBy = "parking")
     private List<ParkingSlot> parkingSlots;
 }

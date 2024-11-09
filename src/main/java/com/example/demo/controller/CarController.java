@@ -22,14 +22,19 @@ public class CarController {
         this.carService = carService;
     }
 
-    @Operation(summary = "Park a new car", description = "Parks a new car in the parking lot")
+    @Operation(summary = "Park a car", description = "Parks a car in a specific parking lot")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Car successfully parked"),
-        @ApiResponse(responseCode = "400", description = "Invalid input")
+        @ApiResponse(responseCode = "400", description = "Invalid input or parking is full"),
+        @ApiResponse(responseCode = "404", description = "Parking lot not found")
     })
-    @PostMapping("/park")
-    public ResponseEntity<Car> parkCar(@RequestBody CarDTO carDTO) {
-        return ResponseEntity.ok(carService.parkCar(carDTO));
+    @PostMapping("/park/{parkingId}")
+    public ResponseEntity<Car> parkCar(@RequestBody CarDTO carDTO, @PathVariable Long parkingId) {
+        try {
+            return ResponseEntity.ok(carService.parkCar(carDTO, parkingId));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().build();
+        }
     }
 
     @Operation(summary = "Remove a car", description = "Removes a car from the parking lot by license plate")
