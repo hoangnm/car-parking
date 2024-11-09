@@ -12,8 +12,21 @@ erDiagram
         String brand
         String model
         String color
-        boolean isParked
     }
+    Parking {
+        Long id PK
+        String location
+        Integer capacity
+    }
+    ParkingSlot {
+        Long id PK
+        Long carId FK
+        Long parkingId FK
+        DateTime startTime
+        DateTime endTime
+    }
+    Car ||--o{ ParkingSlot : "occupies"
+    Parking ||--o{ ParkingSlot : "contains"
 ```
 
 ## API Documentation
