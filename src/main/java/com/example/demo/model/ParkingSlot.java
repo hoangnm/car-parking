@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 public class ParkingSlot {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Integer id;
     
     @ManyToOne
     @JoinColumn(name = "car_id")

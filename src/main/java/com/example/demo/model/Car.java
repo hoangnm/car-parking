@@ -9,7 +9,7 @@ import java.util.List;
 public class Car {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Integer id;
     private String licensePlate;
     private String brand;
     private String model;

@@ -30,7 +30,7 @@ public class CarService {
     }
 
     @Transactional
-    public Car parkCar(CarDTO carDTO, Long parkingId) {
+    public Car parkCar(CarDTO carDTO, Integer parkingId) {
         Parking parking = parkingRepository.findById(parkingId)
             .orElseThrow(() -> new RuntimeException("Parking not found"));
 

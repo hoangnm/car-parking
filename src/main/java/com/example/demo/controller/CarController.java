@@ -29,7 +29,7 @@ public class CarController {
         @ApiResponse(responseCode = "404", description = "Parking lot not found")
     })
     @PostMapping("/park/{parkingId}")
-    public ResponseEntity<Car> parkCar(@RequestBody CarDTO carDTO, @PathVariable Long parkingId) {
+    public ResponseEntity<Car> parkCar(@RequestBody CarDTO carDTO, @PathVariable Integer parkingId) {
         try {
             return ResponseEntity.ok(carService.parkCar(carDTO, parkingId));
         } catch (RuntimeException e) {

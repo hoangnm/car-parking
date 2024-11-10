@@ -9,7 +9,7 @@ import java.util.List;
 public class Parking {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Integer id;
     private String location;
     private Integer capacity;
     
