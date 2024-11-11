@@ -6,4 +6,6 @@ import lombok.Data;
 public class ParkingDTO {
     private String location;
     private Integer capacity;
+    private Double latitude;
+    private Double longitude;
 }

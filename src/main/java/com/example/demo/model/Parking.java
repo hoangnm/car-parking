@@ -12,6 +12,8 @@ public class Parking {
     private Integer id;
     private String location;
     private Integer capacity;
+    private Double latitude;
+    private Double longitude;
     
     @OneToMany(mappedBy = "parking")
     private List<ParkingSlot> parkingSlots;
