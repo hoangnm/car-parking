@@ -35,9 +35,8 @@ public class CarService {
             .orElseThrow(() -> new RuntimeException("Parking not found"));
 
         // Check if parking is full
-        long occupiedSlots = parkingSlotRepository.findByParkingId(parkingId).stream()
-            .filter(slot -> slot.getEndTime() == null)
-            .count();
+        LocalDateTime currentTime = LocalDateTime.now();
+        long occupiedSlots = parkingSlotRepository.countOccupiedSlots(parkingId, currentTime);
         
         if (occupiedSlots >= parking.getCapacity()) {
             throw new RuntimeException("Parking is full");
