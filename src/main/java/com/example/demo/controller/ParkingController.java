@@ -2,6 +2,7 @@ package com.example.demo.controller;
 
 import com.example.demo.dto.CarDepartureDTO;
 import com.example.demo.dto.CarDTO;
+import com.example.demo.dto.ParkingSlotDTO;
 import com.example.demo.model.Car;
 import com.example.demo.service.CarService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -29,9 +30,9 @@ public class ParkingController {
         @ApiResponse(responseCode = "404", description = "Parking lot not found")
     })
     @PostMapping("/{parkingId}/cars")
-    public ResponseEntity<Car> parkCar(@RequestBody CarDTO carDTO, @PathVariable Integer parkingId) {
-        Car parkedCar = carService.parkCar(carDTO, parkingId);
-        return ResponseEntity.ok(parkedCar);
+    public ResponseEntity<ParkingSlotDTO> parkCar(@RequestBody CarDTO carDTO, @PathVariable Integer parkingId) {
+        ParkingSlotDTO parkingSlot = carService.parkCar(carDTO, parkingId);
+        return ResponseEntity.ok(parkingSlot);
     }
 
     @Operation(summary = "Remove car from parking", description = "Removes a car from a specific parking slot")

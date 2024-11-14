@@ -5,8 +5,11 @@ import java.time.LocalDateTime;
 
 @Data
 public class ParkingSlotDTO {
-    private Long carId;
-    private Long parkingId;
+    private Integer id;
+    private Integer carId;
+    private Integer parkingId;
     private LocalDateTime startTime;
     private LocalDateTime endTime;
+    private String carLicensePlate;
+    private String parkingLocation;
 }
