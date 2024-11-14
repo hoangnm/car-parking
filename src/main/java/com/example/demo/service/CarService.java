@@ -61,29 +61,25 @@ public class CarService {
     }
 
     @Transactional
-    public Car removeCar(String licensePlate) {
+    public Car removeCarFromParking(Integer parkingId, String licensePlate, LocalDateTime departureTime) {
         Car car = carRepository.findByLicensePlate(licensePlate);
         if (car != null) {
-            List<ParkingSlot> activeSlots = parkingSlotRepository.findByCarId(car.getId()).stream()
-                .filter(slot -> slot.getEndTime() == null)
-                .collect(Collectors.toList());
+            Optional<ParkingSlot> activeSlot = parkingSlotRepository.findByCarIdAndParkingIdAndEndTimeIsNull(car.getId(), parkingId);
             
-            activeSlots.forEach(slot -> {
-                slot.setEndTime(LocalDateTime.now());
+            if (activeSlot.isPresent()) {
+                ParkingSlot slot = activeSlot.get();
+                slot.setEndTime(departureTime != null ? departureTime : LocalDateTime.now());
                 parkingSlotRepository.save(slot);
-            });
-            
-            return car;
+                return car;
+            }
         }
         return null;
     }
 
-    public List<Car> getAllParkedCars() {
-        return parkingSlotRepository.findAll().stream()
-            .filter(slot -> slot.getEndTime() == null)
-            .map(ParkingSlot::getCar)
-            .distinct()
-            .collect(Collectors.toList());
+    @Deprecated
+    @Transactional
+    public Car removeCar(String licensePlate) {
+        return removeCarFromParking(null, licensePlate, LocalDateTime.now());
     }
 
     public Car getCarByLicensePlate(String licensePlate) {
