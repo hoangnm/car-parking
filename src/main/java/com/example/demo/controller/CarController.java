@@ -20,21 +20,6 @@ public class CarController {
         this.carService = carService;
     }
 
-    @Operation(summary = "Park a car", description = "Parks a car in a specific parking lot")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Car successfully parked"),
-        @ApiResponse(responseCode = "400", description = "Invalid input or parking is full"),
-        @ApiResponse(responseCode = "404", description = "Parking lot not found")
-    })
-    @PostMapping("/park/{parkingId}")
-    public ResponseEntity<Car> parkCar(@RequestBody CarDTO carDTO, @PathVariable Integer parkingId) {
-        try {
-            return ResponseEntity.ok(carService.parkCar(carDTO, parkingId));
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().build();
-        }
-    }
-
     @Operation(summary = "Get car by license plate", description = "Returns a car by its license plate")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Car found"),

@@ -12,8 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Optional;
 
 @Service
 public class CarService {
@@ -63,23 +62,19 @@ public class CarService {
     @Transactional
     public Car removeCarFromParking(Integer parkingId, String licensePlate, LocalDateTime departureTime) {
         Car car = carRepository.findByLicensePlate(licensePlate);
-        if (car != null) {
-            Optional<ParkingSlot> activeSlot = parkingSlotRepository.findByCarIdAndParkingIdAndEndTimeIsNull(car.getId(), parkingId);
-            
-            if (activeSlot.isPresent()) {
-                ParkingSlot slot = activeSlot.get();
-                slot.setEndTime(departureTime != null ? departureTime : LocalDateTime.now());
-                parkingSlotRepository.save(slot);
-                return car;
-            }
+        if (car == null) {
+            throw new RuntimeException("Car not found");
         }
-        return null;
-    }
-
-    @Deprecated
-    @Transactional
-    public Car removeCar(String licensePlate) {
-        return removeCarFromParking(null, licensePlate, LocalDateTime.now());
+        
+        Optional<ParkingSlot> activeSlot = parkingSlotRepository.findByCarIdAndParkingIdAndEndTimeIsNull(car.getId(), parkingId);
+        if (!activeSlot.isPresent()) {
+            throw new RuntimeException("Car is not parked in this parking lot");
+        }
+        
+        ParkingSlot slot = activeSlot.get();
+        slot.setEndTime(departureTime != null ? departureTime : LocalDateTime.now());
+        parkingSlotRepository.save(slot);
+        return car;
     }
 
     public Car getCarByLicensePlate(String licensePlate) {
