@@ -8,6 +8,7 @@ import com.example.demo.model.ParkingSlot;
 import com.example.demo.repository.CarRepository;
 import com.example.demo.repository.ParkingRepository;
 import com.example.demo.repository.ParkingSlotRepository;
+import com.example.demo.exception.*;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,7 +38,7 @@ public class CarService {
         log.debug("Attempting to park car with license plate: {} in parking ID: {}", carDTO.getLicensePlate(), parkingId);
         
         Parking parking = parkingRepository.findById(parkingId)
-            .orElseThrow(() -> new RuntimeException("Parking not found"));
+            .orElseThrow(() -> new ResourceNotFoundException("Parking not found with id: " + parkingId));
 
         // Check if parking is full
         LocalDateTime currentTime = LocalDateTime.now();
@@ -45,7 +46,7 @@ public class CarService {
         
         if (occupiedSlots >= parking.getCapacity()) {
             log.warn("Parking is full for parking ID: {}", parkingId);
-            throw new RuntimeException("Parking is full");
+            throw new ParkingException("Parking is full");
         }
 
         // Create or get car
@@ -61,7 +62,7 @@ public class CarService {
                 .findByCarIdAndParkingIdAndEndTimeIsNull(car.getId(), parkingId);
             if (activeParking.isPresent()) {
                 log.warn("Car with ID: {} is already parked in parking ID: {}", car.getId(), parkingId);
-                throw new RuntimeException("This car is already parked in this parking lot");
+                throw new ParkingException("Car with license plate " + carDTO.getLicensePlate() + " is already parked in this parking lot");
             }
         }
 
@@ -93,13 +94,13 @@ public class CarService {
         Car car = carRepository.findByLicensePlate(licensePlate);
         if (car == null) {
             log.warn("Car not found with license plate: {}", licensePlate);
-            throw new RuntimeException("Car not found");
+            throw new ResourceNotFoundException("Car not found with license plate: " + licensePlate);
         }
         
         Optional<ParkingSlot> activeSlot = parkingSlotRepository.findByCarIdAndParkingIdAndEndTimeIsNull(car.getId(), parkingId);
         if (!activeSlot.isPresent()) {
             log.warn("Car with ID: {} is not parked in parking ID: {}", car.getId(), parkingId);
-            throw new RuntimeException("Car is not parked in this parking lot");
+            throw new ParkingException("Car with license plate " + licensePlate + " is not parked in this parking lot");
         }
         
         ParkingSlot slot = activeSlot.get();
