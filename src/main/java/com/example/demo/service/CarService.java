@@ -35,7 +35,12 @@ public class CarService {
 
     @Transactional
     public ParkingSlotDTO parkCar(CarDTO carDTO, Integer parkingId) {
-        log.debug("Attempting to park car with license plate: {} in parking ID: {}", carDTO.getLicensePlate(), parkingId);
+        log.atDebug()
+           .setMessage("Attempting to park car")
+           .addKeyValue("action", "park_car")
+           .addKeyValue("licensePlate", carDTO.getLicensePlate())
+           .addKeyValue("parkingId", parkingId)
+           .log();
         
         Parking parking = parkingRepository.findById(parkingId)
             .orElseThrow(() -> new ResourceNotFoundException("Parking not found with id: " + parkingId));
@@ -45,23 +50,41 @@ public class CarService {
         long occupiedSlots = parkingSlotRepository.countOccupiedSlots(parkingId, currentTime);
         
         if (occupiedSlots >= parking.getCapacity()) {
-            log.warn("Parking is full for parking ID: {}", parkingId);
+            log.atWarn()
+               .setMessage("Parking is full")
+               .addKeyValue("action", "park_car")
+               .addKeyValue("status", "full")
+               .addKeyValue("parkingId", parkingId)
+               .log();
             throw new ParkingException("Parking is full");
         }
 
         // Create or get car
         Car car = carRepository.findByLicensePlate(carDTO.getLicensePlate());
         if (car == null) {
-            log.debug("Car not found, creating new car entry for license plate: {}", carDTO.getLicensePlate());
+            log.atDebug()
+               .setMessage("Creating new car entry")
+               .addKeyValue("action", "create_car")
+               .addKeyValue("licensePlate", carDTO.getLicensePlate())
+               .log();
             car = new Car();
             BeanUtils.copyProperties(carDTO, car);
             car = carRepository.save(car);
         } else {
-            log.debug("Car found with ID: {}, checking for active parking slot", car.getId());
+            log.atDebug()
+               .setMessage("Car found")
+               .addKeyValue("id", car.getId())
+               .addKeyValue("action", "check_active_slot")
+               .log();
             Optional<ParkingSlot> activeParking = parkingSlotRepository
                 .findByCarIdAndParkingIdAndEndTimeIsNull(car.getId(), parkingId);
             if (activeParking.isPresent()) {
-                log.warn("Car with ID: {} is already parked in parking ID: {}", car.getId(), parkingId);
+                log.atWarn()
+                   .setMessage("Car already parked")
+                   .addKeyValue("carId", car.getId())
+                   .addKeyValue("parkingId", parkingId)
+                   .addKeyValue("status", "duplicate")
+                   .log();
                 throw new ParkingException("Car with license plate " + carDTO.getLicensePlate() + " is already parked in this parking lot");
             }
         }
@@ -73,7 +96,13 @@ public class CarService {
         parkingSlot.setStartTime(LocalDateTime.now());
         parkingSlot = parkingSlotRepository.save(parkingSlot);
 
-        log.debug("Car parked successfully with parking slot ID: {}", parkingSlot.getId());
+        log.atDebug()
+           .setMessage("Car parked successfully")
+           .addKeyValue("action", "park_complete")
+           .addKeyValue("slotId", parkingSlot.getId())
+           .addKeyValue("carId", car.getId())
+           .addKeyValue("parkingId", parking.getId())
+           .log();
 
         // Convert to DTO
         ParkingSlotDTO parkingSlotDTO = new ParkingSlotDTO();
@@ -89,17 +118,33 @@ public class CarService {
 
     @Transactional
     public Car removeCarFromParking(Integer parkingId, String licensePlate, LocalDateTime departureTime) {
-        log.debug("Attempting to remove car with license plate: {} from parking ID: {}", licensePlate, parkingId);
+        log.atDebug()
+           .setMessage("Attempting to remove car")
+           .addKeyValue("action", "remove_car")
+           .addKeyValue("licensePlate", licensePlate)
+           .addKeyValue("parkingId", parkingId)
+           .log();
         
         Car car = carRepository.findByLicensePlate(licensePlate);
         if (car == null) {
-            log.warn("Car not found with license plate: {}", licensePlate);
+            log.atWarn()
+               .setMessage("Car not found")
+               .addKeyValue("action", "remove_car")
+               .addKeyValue("licensePlate", licensePlate)
+               .addKeyValue("status", "not_found")
+               .log();
             throw new ResourceNotFoundException("Car not found with license plate: " + licensePlate);
         }
         
         Optional<ParkingSlot> activeSlot = parkingSlotRepository.findByCarIdAndParkingIdAndEndTimeIsNull(car.getId(), parkingId);
         if (!activeSlot.isPresent()) {
-            log.warn("Car with ID: {} is not parked in parking ID: {}", car.getId(), parkingId);
+            log.atWarn()
+               .setMessage("Car not parked in lot")
+               .addKeyValue("action", "remove_car")
+               .addKeyValue("carId", car.getId())
+               .addKeyValue("parkingId", parkingId)
+               .addKeyValue("status", "not_found")
+               .log();
             throw new ParkingException("Car with license plate " + licensePlate + " is not parked in this parking lot");
         }
         
@@ -107,13 +152,23 @@ public class CarService {
         slot.setEndTime(departureTime != null ? departureTime : LocalDateTime.now());
         parkingSlotRepository.save(slot);
 
-        log.debug("Car with ID: {} removed from parking slot ID: {}", car.getId(), slot.getId());
+        log.atDebug()
+           .setMessage("Car removed successfully")
+           .addKeyValue("action", "remove_complete")
+           .addKeyValue("carId", car.getId())
+           .addKeyValue("slotId", slot.getId())
+           .addKeyValue("parkingId", parkingId)
+           .log();
 
         return car;
     }
 
     public Car getCarByLicensePlate(String licensePlate) {
-        log.debug("Fetching car with license plate: {}", licensePlate);
+        log.atDebug()
+           .setMessage("Fetching car")
+           .addKeyValue("action", "get_car")
+           .addKeyValue("licensePlate", licensePlate)
+           .log();
         return carRepository.findByLicensePlate(licensePlate);
     }
 }
