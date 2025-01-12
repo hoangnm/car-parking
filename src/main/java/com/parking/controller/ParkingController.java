@@ -1,9 +1,9 @@
-package com.example.demo.controller;
+package com.parking.controller;
 
-import com.example.demo.dto.CarDTO;
-import com.example.demo.dto.ParkingSlotDTO;
-import com.example.demo.model.Car;
-import com.example.demo.service.CarService;
+import com.parking.dto.CarDTO;
+import com.parking.dto.ParkingSlotDTO;
+import com.parking.model.Car;
+import com.parking.service.CarService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;

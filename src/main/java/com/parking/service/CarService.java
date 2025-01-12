@@ -1,14 +1,14 @@
-package com.example.demo.service;
+package com.parking.service;
 
-import com.example.demo.dto.CarDTO;
-import com.example.demo.dto.ParkingSlotDTO;
-import com.example.demo.model.Car;
-import com.example.demo.model.Parking;
-import com.example.demo.model.ParkingSlot;
-import com.example.demo.repository.CarRepository;
-import com.example.demo.repository.ParkingRepository;
-import com.example.demo.repository.ParkingSlotRepository;
-import com.example.demo.exception.*;
+import com.parking.dto.CarDTO;
+import com.parking.dto.ParkingSlotDTO;
+import com.parking.model.Car;
+import com.parking.model.Parking;
+import com.parking.model.ParkingSlot;
+import com.parking.repository.CarRepository;
+import com.parking.repository.ParkingRepository;
+import com.parking.repository.ParkingSlotRepository;
+import com.parking.exception.*;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

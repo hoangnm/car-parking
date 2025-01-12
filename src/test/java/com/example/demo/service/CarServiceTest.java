@@ -1,15 +1,16 @@
-package com.example.demo.service;
+package com.parking.service;
 
-import com.example.demo.dto.CarDTO;
-import com.example.demo.dto.ParkingSlotDTO;
-import com.example.demo.model.Car;
-import com.example.demo.model.Parking;
-import com.example.demo.model.ParkingSlot;
-import com.example.demo.repository.CarRepository;
-import com.example.demo.repository.ParkingRepository;
-import com.example.demo.repository.ParkingSlotRepository;
-import com.example.demo.exception.ParkingException;
-import com.example.demo.exception.ResourceNotFoundException;
+import com.parking.dto.CarDTO;
+import com.parking.dto.ParkingSlotDTO;
+import com.parking.model.Car;
+import com.parking.model.Parking;
+import com.parking.model.ParkingSlot;
+import com.parking.repository.CarRepository;
+import com.parking.repository.ParkingRepository;
+import com.parking.repository.ParkingSlotRepository;
+import com.parking.service.CarService;
+import com.parking.exception.ParkingException;
+import com.parking.exception.ResourceNotFoundException;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -119,7 +120,7 @@ class CarServiceTest {
         when(parkingSlotRepository.save(any(ParkingSlot.class))).thenReturn(testParkingSlot);
 
         // Act
-        Car result = carService.removeCarFromParking(1, "ABC123", LocalDateTime.now());
+        Car result = carService.registerCarDeparture(1, "ABC123");
 
         // Assert
         assertNotNull(result);
@@ -135,7 +136,7 @@ class CarServiceTest {
 
         // Act & Assert
         assertThrows(ResourceNotFoundException.class, 
-            () -> carService.removeCarFromParking(1, "ABC123", LocalDateTime.now()));
+            () -> carService.registerCarDeparture(1, "ABC123"));
     }
 
     @Test
@@ -147,7 +148,7 @@ class CarServiceTest {
 
         // Act & Assert
         assertThrows(ParkingException.class, 
-            () -> carService.removeCarFromParking(1, "ABC123", LocalDateTime.now()));
+            () -> carService.registerCarDeparture(1, "ABC123"));
     }
 
     @Test

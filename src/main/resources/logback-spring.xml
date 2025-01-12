@@ -11,5 +11,5 @@
         <appender-ref ref="CONSOLE" />
     </root>
 
-    <logger name="com.example.demo" level="DEBUG" />
+    <logger name="com.parking" level="DEBUG" />
 </configuration>
