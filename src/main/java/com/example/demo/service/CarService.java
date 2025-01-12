@@ -117,7 +117,7 @@ public class CarService {
     }
 
     @Transactional
-    public Car removeCarFromParking(Integer parkingId, String licensePlate, LocalDateTime departureTime) {
+    public Car registerCarDeparture(Integer parkingId, String licensePlate) {
         log.atDebug()
            .setMessage("Attempting to remove car")
            .addKeyValue("action", "remove_car")
@@ -149,7 +149,7 @@ public class CarService {
         }
         
         ParkingSlot slot = activeSlot.get();
-        slot.setEndTime(departureTime != null ? departureTime : LocalDateTime.now());
+        slot.setEndTime(LocalDateTime.now());
         parkingSlotRepository.save(slot);
 
         log.atDebug()

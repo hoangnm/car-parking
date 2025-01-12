@@ -79,7 +79,23 @@ The API documentation is available through Swagger UI at:
 
 ## Features
 
-- Park a new car
-- Remove a car from parking
-- List all parked cars
-- Find a car by license plate
+The system supports the following operations:
+
+### Parking Management
+- Register a car for parking (assigns an available parking slot)
+- Register a car's departure (records when a car leaves the parking lot)
+- Check if a specific car is currently in the parking lot
+
+### Car Information
+- Store car details (license plate, brand, model, color)
+- Look up car information by license plate
+
+### Capacity Management
+- Track parking lot capacity
+- Prevent parking when lot is full
+- Monitor occupied and available parking slots
+
+### Monitoring and Reporting
+- Track parking duration for each car
+- View parking lot occupancy status
+- Access historical parking records

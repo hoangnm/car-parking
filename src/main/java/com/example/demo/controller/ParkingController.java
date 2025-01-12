@@ -1,6 +1,5 @@
 package com.example.demo.controller;
 
-import com.example.demo.dto.CarDepartureDTO;
 import com.example.demo.dto.CarDTO;
 import com.example.demo.dto.ParkingSlotDTO;
 import com.example.demo.model.Car;
@@ -41,11 +40,10 @@ public class ParkingController {
         @ApiResponse(responseCode = "404", description = "Car or parking not found")
     })
     @PutMapping("/{parkingId}/cars/{licensePlate}")
-    public ResponseEntity<Car> removeCarFromParking(
+    public ResponseEntity<Car> registerCarDeparture(
             @PathVariable Integer parkingId,
-            @PathVariable String licensePlate,
-            @RequestBody CarDepartureDTO departureDTO) {
-        Car removedCar = carService.removeCarFromParking(parkingId, licensePlate, departureDTO.getDepartureTime());
+            @PathVariable String licensePlate) {
+        Car removedCar = carService.registerCarDeparture(parkingId, licensePlate);
         if (removedCar != null) {
             return ResponseEntity.ok(removedCar);
         }
