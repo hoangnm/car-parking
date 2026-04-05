@@ -68,3 +68,13 @@ flyway {
 	baselineVersion = '1'
 	// driver = 'org.postgresql.Driver'
 }
+
+tasks.register('installGitHooks', Copy) {
+	from new File(rootProject.rootDir, 'gradle/git-hooks/pre-commit')
+	into { new File(rootProject.rootDir, '.git/hooks') }
+	fileMode 0775
+}
+
+tasks.named('compileJava') {
+	dependsOn 'installGitHooks'
+}
