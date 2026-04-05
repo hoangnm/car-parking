@@ -1,12 +1,16 @@
-package com.parking.model;
+package com.parking.adapter.out.persistence.entity;
 
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import java.util.List;
+import java.util.ArrayList;
 
 @Entity
-@Data
-public class Car {
+@Table(name = "car")
+@Getter
+@Setter
+public class CarEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
@@ -16,5 +20,5 @@ public class Car {
     private String color;
     
     @OneToMany(mappedBy = "car")
-    private List<ParkingSlot> parkingSlots;
+    private List<ParkingSlotEntity> parkingSlots = new ArrayList<>();
 }

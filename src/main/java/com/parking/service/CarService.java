@@ -2,9 +2,13 @@ package com.parking.service;
 
 import com.parking.dto.CarDTO;
 import com.parking.dto.ParkingSlotDTO;
-import com.parking.model.Car;
-import com.parking.model.Parking;
-import com.parking.model.ParkingSlot;
+import com.parking.domain.model.Car;
+import com.parking.domain.model.Parking;
+import com.parking.domain.model.ParkingSlot;
+import com.parking.adapter.out.persistence.entity.CarEntity;
+import com.parking.adapter.out.persistence.entity.ParkingEntity;
+import com.parking.adapter.out.persistence.entity.ParkingSlotEntity;
+import com.parking.mapper.DomainMapper;
 import com.parking.repository.CarRepository;
 import com.parking.repository.ParkingRepository;
 import com.parking.repository.ParkingSlotRepository;
@@ -42,8 +46,9 @@ public class CarService {
            .addKeyValue("parkingId", parkingId)
            .log();
         
-        Parking parking = parkingRepository.findById(parkingId)
+        ParkingEntity parkingEntity = parkingRepository.findById(parkingId)
             .orElseThrow(() -> new ResourceNotFoundException("Parking not found with id: " + parkingId));
+        Parking parking = DomainMapper.toDomain(parkingEntity);
 
         // Check if parking is full
         LocalDateTime currentTime = LocalDateTime.now();
@@ -60,8 +65,9 @@ public class CarService {
         }
 
         // Create or get car
-        Car car = carRepository.findByLicensePlate(carDTO.getLicensePlate());
-        if (car == null) {
+        CarEntity carEntity = carRepository.findByLicensePlate(carDTO.getLicensePlate());
+        Car car;
+        if (carEntity == null) {
             log.atDebug()
                .setMessage("Creating new car entry")
                .addKeyValue("action", "create_car")
@@ -69,16 +75,19 @@ public class CarService {
                .log();
             car = new Car();
             BeanUtils.copyProperties(carDTO, car);
-            car = carRepository.save(car);
+            carEntity = DomainMapper.toEntity(car);
+            carEntity = carRepository.save(carEntity);
+            car = DomainMapper.toDomain(carEntity);
         } else {
+            car = DomainMapper.toDomain(carEntity);
             log.atDebug()
                .setMessage("Car found")
                .addKeyValue("id", car.getId())
                .addKeyValue("action", "check_active_slot")
                .log();
-            Optional<ParkingSlot> activeParking = parkingSlotRepository
+            Optional<ParkingSlotEntity> activeParkingEntity = parkingSlotRepository
                 .findByCarIdAndParkingIdAndEndTimeIsNull(car.getId(), parkingId);
-            if (activeParking.isPresent()) {
+            if (activeParkingEntity.isPresent()) {
                 log.atWarn()
                    .setMessage("Car already parked")
                    .addKeyValue("carId", car.getId())
@@ -94,7 +103,10 @@ public class CarService {
         parkingSlot.setCar(car);
         parkingSlot.setParking(parking);
         parkingSlot.setStartTime(LocalDateTime.now());
-        parkingSlot = parkingSlotRepository.save(parkingSlot);
+        
+        ParkingSlotEntity parkingSlotEntity = DomainMapper.toEntity(parkingSlot);
+        parkingSlotEntity = parkingSlotRepository.save(parkingSlotEntity);
+        parkingSlot = DomainMapper.toDomain(parkingSlotEntity);
 
         log.atDebug()
            .setMessage("Car parked successfully")
@@ -125,8 +137,8 @@ public class CarService {
            .addKeyValue("parkingId", parkingId)
            .log();
         
-        Car car = carRepository.findByLicensePlate(licensePlate);
-        if (car == null) {
+        CarEntity carEntity = carRepository.findByLicensePlate(licensePlate);
+        if (carEntity == null) {
             log.atWarn()
                .setMessage("Car not found")
                .addKeyValue("action", "remove_car")
@@ -135,9 +147,10 @@ public class CarService {
                .log();
             throw new ResourceNotFoundException("Car not found with license plate: " + licensePlate);
         }
+        Car car = DomainMapper.toDomain(carEntity);
         
-        Optional<ParkingSlot> activeSlot = parkingSlotRepository.findByCarIdAndParkingIdAndEndTimeIsNull(car.getId(), parkingId);
-        if (!activeSlot.isPresent()) {
+        Optional<ParkingSlotEntity> activeSlotEntity = parkingSlotRepository.findByCarIdAndParkingIdAndEndTimeIsNull(car.getId(), parkingId);
+        if (!activeSlotEntity.isPresent()) {
             log.atWarn()
                .setMessage("Car not parked in lot")
                .addKeyValue("action", "remove_car")
@@ -148,15 +161,15 @@ public class CarService {
             throw new ParkingException("Car with license plate " + licensePlate + " is not parked in this parking lot");
         }
         
-        ParkingSlot slot = activeSlot.get();
-        slot.setEndTime(LocalDateTime.now());
-        parkingSlotRepository.save(slot);
+        ParkingSlotEntity slotEntity = activeSlotEntity.get();
+        slotEntity.setEndTime(LocalDateTime.now());
+        parkingSlotRepository.save(slotEntity);
 
         log.atDebug()
            .setMessage("Car removed successfully")
            .addKeyValue("action", "remove_complete")
            .addKeyValue("carId", car.getId())
-           .addKeyValue("slotId", slot.getId())
+           .addKeyValue("slotId", slotEntity.getId())
            .addKeyValue("parkingId", parkingId)
            .log();
 
@@ -169,6 +182,7 @@ public class CarService {
            .addKeyValue("action", "get_car")
            .addKeyValue("licensePlate", licensePlate)
            .log();
-        return carRepository.findByLicensePlate(licensePlate);
+        CarEntity carEntity = carRepository.findByLicensePlate(licensePlate);
+        return DomainMapper.toDomain(carEntity);
     }
 }
