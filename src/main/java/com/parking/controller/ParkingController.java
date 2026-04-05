@@ -1,8 +1,8 @@
 package com.parking.controller;
 
+import com.parking.domain.model.Car;
 import com.parking.dto.CarDTO;
 import com.parking.dto.ParkingSessionDTO;
-import com.parking.domain.model.Car;
 import com.parking.service.CarService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -15,38 +15,42 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/parkings")
 @Tag(name = "Parking Controller", description = "Endpoints for managing parking operations")
 public class ParkingController {
-    
-    private final CarService carService;
 
-    public ParkingController(CarService carService) {
-        this.carService = carService;
-    }
+  private final CarService carService;
 
-    @Operation(summary = "Park a car", description = "Parks a car in a specific parking lot")
-    @ApiResponses(value = {
+  public ParkingController(CarService carService) {
+    this.carService = carService;
+  }
+
+  @Operation(summary = "Park a car", description = "Parks a car in a specific parking lot")
+  @ApiResponses(
+      value = {
         @ApiResponse(responseCode = "200", description = "Car successfully parked"),
         @ApiResponse(responseCode = "400", description = "Invalid input or parking is full"),
         @ApiResponse(responseCode = "404", description = "Parking lot not found")
-    })
-    @PostMapping("/{parkingId}/cars")
-    public ResponseEntity<ParkingSessionDTO> parkCar(@RequestBody CarDTO carDTO, @PathVariable Integer parkingId) {
-        ParkingSessionDTO parkingSession = carService.parkCar(carDTO, parkingId);
-        return ResponseEntity.ok(parkingSession);
-    }
+      })
+  @PostMapping("/{parkingId}/cars")
+  public ResponseEntity<ParkingSessionDTO> parkCar(
+      @RequestBody CarDTO carDTO, @PathVariable Integer parkingId) {
+    ParkingSessionDTO parkingSession = carService.parkCar(carDTO, parkingId);
+    return ResponseEntity.ok(parkingSession);
+  }
 
-    @Operation(summary = "Remove car from parking", description = "Removes a car from a specific parking slot")
-    @ApiResponses(value = {
+  @Operation(
+      summary = "Remove car from parking",
+      description = "Removes a car from a specific parking slot")
+  @ApiResponses(
+      value = {
         @ApiResponse(responseCode = "200", description = "Car successfully removed from parking"),
         @ApiResponse(responseCode = "404", description = "Car or parking not found")
-    })
-    @PutMapping("/{parkingId}/cars/{licensePlate}")
-    public ResponseEntity<Car> registerCarDeparture(
-            @PathVariable Integer parkingId,
-            @PathVariable String licensePlate) {
-        Car removedCar = carService.registerCarDeparture(parkingId, licensePlate);
-        if (removedCar != null) {
-            return ResponseEntity.ok(removedCar);
-        }
-        return ResponseEntity.notFound().build();
+      })
+  @PutMapping("/{parkingId}/cars/{licensePlate}")
+  public ResponseEntity<Car> registerCarDeparture(
+      @PathVariable Integer parkingId, @PathVariable String licensePlate) {
+    Car removedCar = carService.registerCarDeparture(parkingId, licensePlate);
+    if (removedCar != null) {
+      return ResponseEntity.ok(removedCar);
     }
+    return ResponseEntity.notFound().build();
+  }
 }
