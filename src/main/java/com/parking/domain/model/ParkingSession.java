@@ -6,7 +6,7 @@ import java.time.LocalDateTime;
 
 @Getter
 @Setter
-public class ParkingSlot {
+public class ParkingSession {
     private Integer id;
     private Car car;
     private Parking parking;

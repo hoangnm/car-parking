@@ -20,5 +20,5 @@ public class CarEntity {
     private String color;
     
     @OneToMany(mappedBy = "car")
-    private List<ParkingSlotEntity> parkingSlots = new ArrayList<>();
+    private List<ParkingSessionEntity> parkingSessions = new ArrayList<>();
 }

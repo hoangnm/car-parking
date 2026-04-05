@@ -14,5 +14,5 @@ public class Car {
     private String model;
     private String color;
     
-    private List<ParkingSlot> parkingSlots = new ArrayList<>();
+    private List<ParkingSession> parkingSessions = new ArrayList<>();
 }

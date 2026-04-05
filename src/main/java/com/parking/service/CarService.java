@@ -1,17 +1,17 @@
 package com.parking.service;
 
 import com.parking.dto.CarDTO;
-import com.parking.dto.ParkingSlotDTO;
+import com.parking.dto.ParkingSessionDTO;
 import com.parking.domain.model.Car;
 import com.parking.domain.model.Parking;
-import com.parking.domain.model.ParkingSlot;
+import com.parking.domain.model.ParkingSession;
 import com.parking.adapter.out.persistence.entity.CarEntity;
 import com.parking.adapter.out.persistence.entity.ParkingEntity;
-import com.parking.adapter.out.persistence.entity.ParkingSlotEntity;
+import com.parking.adapter.out.persistence.entity.ParkingSessionEntity;
 import com.parking.mapper.DomainMapper;
 import com.parking.repository.CarRepository;
 import com.parking.repository.ParkingRepository;
-import com.parking.repository.ParkingSlotRepository;
+import com.parking.repository.ParkingSessionRepository;
 import com.parking.exception.*;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
@@ -27,18 +27,18 @@ import lombok.extern.slf4j.Slf4j;
 public class CarService {
     private final CarRepository carRepository;
     private final ParkingRepository parkingRepository;
-    private final ParkingSlotRepository parkingSlotRepository;
+    private final ParkingSessionRepository parkingSessionRepository;
 
     public CarService(CarRepository carRepository, 
                      ParkingRepository parkingRepository,
-                     ParkingSlotRepository parkingSlotRepository) {
+                     ParkingSessionRepository parkingSessionRepository) {
         this.carRepository = carRepository;
         this.parkingRepository = parkingRepository;
-        this.parkingSlotRepository = parkingSlotRepository;
+        this.parkingSessionRepository = parkingSessionRepository;
     }
 
     @Transactional
-    public ParkingSlotDTO parkCar(CarDTO carDTO, Integer parkingId) {
+    public ParkingSessionDTO parkCar(CarDTO carDTO, Integer parkingId) {
         log.atDebug()
            .setMessage("Attempting to park car")
            .addKeyValue("action", "park_car")
@@ -52,9 +52,9 @@ public class CarService {
 
         // Check if parking is full
         LocalDateTime currentTime = LocalDateTime.now();
-        long occupiedSlots = parkingSlotRepository.countOccupiedSlots(parkingId, currentTime);
+        long activeSessions = parkingSessionRepository.countActiveSessions(parkingId, currentTime);
         
-        if (occupiedSlots >= parking.getCapacity()) {
+        if (activeSessions >= parking.getCapacity()) {
             log.atWarn()
                .setMessage("Parking is full")
                .addKeyValue("action", "park_car")
@@ -85,7 +85,7 @@ public class CarService {
                .addKeyValue("id", car.getId())
                .addKeyValue("action", "check_active_slot")
                .log();
-            Optional<ParkingSlotEntity> activeParkingEntity = parkingSlotRepository
+            Optional<ParkingSessionEntity> activeParkingEntity = parkingSessionRepository
                 .findByCarIdAndParkingIdAndEndTimeIsNull(car.getId(), parkingId);
             if (activeParkingEntity.isPresent()) {
                 log.atWarn()
@@ -99,33 +99,33 @@ public class CarService {
         }
 
         // Create parking slot
-        ParkingSlot parkingSlot = new ParkingSlot();
-        parkingSlot.setCar(car);
-        parkingSlot.setParking(parking);
-        parkingSlot.setStartTime(LocalDateTime.now());
+        ParkingSession parkingSession = new ParkingSession();
+        parkingSession.setCar(car);
+        parkingSession.setParking(parking);
+        parkingSession.setStartTime(LocalDateTime.now());
         
-        ParkingSlotEntity parkingSlotEntity = DomainMapper.toEntity(parkingSlot);
-        parkingSlotEntity = parkingSlotRepository.save(parkingSlotEntity);
-        parkingSlot = DomainMapper.toDomain(parkingSlotEntity);
+        ParkingSessionEntity parkingSessionEntity = DomainMapper.toEntity(parkingSession);
+        parkingSessionEntity = parkingSessionRepository.save(parkingSessionEntity);
+        parkingSession = DomainMapper.toDomain(parkingSessionEntity);
 
         log.atDebug()
            .setMessage("Car parked successfully")
            .addKeyValue("action", "park_complete")
-           .addKeyValue("slotId", parkingSlot.getId())
+           .addKeyValue("sessionId", parkingSession.getId())
            .addKeyValue("carId", car.getId())
            .addKeyValue("parkingId", parking.getId())
            .log();
 
         // Convert to DTO
-        ParkingSlotDTO parkingSlotDTO = new ParkingSlotDTO();
-        parkingSlotDTO.setId(parkingSlot.getId());
-        parkingSlotDTO.setCarId(car.getId());
-        parkingSlotDTO.setParkingId(parking.getId());
-        parkingSlotDTO.setStartTime(parkingSlot.getStartTime());
-        parkingSlotDTO.setCarLicensePlate(car.getLicensePlate());
-        parkingSlotDTO.setParkingLocation(parking.getLocation());
+        ParkingSessionDTO parkingSessionDTO = new ParkingSessionDTO();
+        parkingSessionDTO.setId(parkingSession.getId());
+        parkingSessionDTO.setCarId(car.getId());
+        parkingSessionDTO.setParkingId(parking.getId());
+        parkingSessionDTO.setStartTime(parkingSession.getStartTime());
+        parkingSessionDTO.setCarLicensePlate(car.getLicensePlate());
+        parkingSessionDTO.setParkingLocation(parking.getLocation());
 
-        return parkingSlotDTO;
+        return parkingSessionDTO;
     }
 
     @Transactional
@@ -149,7 +149,7 @@ public class CarService {
         }
         Car car = DomainMapper.toDomain(carEntity);
         
-        Optional<ParkingSlotEntity> activeSlotEntity = parkingSlotRepository.findByCarIdAndParkingIdAndEndTimeIsNull(car.getId(), parkingId);
+        Optional<ParkingSessionEntity> activeSlotEntity = parkingSessionRepository.findByCarIdAndParkingIdAndEndTimeIsNull(car.getId(), parkingId);
         if (!activeSlotEntity.isPresent()) {
             log.atWarn()
                .setMessage("Car not parked in lot")
@@ -161,15 +161,15 @@ public class CarService {
             throw new ParkingException("Car with license plate " + licensePlate + " is not parked in this parking lot");
         }
         
-        ParkingSlotEntity slotEntity = activeSlotEntity.get();
+        ParkingSessionEntity slotEntity = activeSlotEntity.get();
         slotEntity.setEndTime(LocalDateTime.now());
-        parkingSlotRepository.save(slotEntity);
+        parkingSessionRepository.save(slotEntity);
 
         log.atDebug()
            .setMessage("Car removed successfully")
            .addKeyValue("action", "remove_complete")
            .addKeyValue("carId", car.getId())
-           .addKeyValue("slotId", slotEntity.getId())
+           .addKeyValue("sessionId", slotEntity.getId())
            .addKeyValue("parkingId", parkingId)
            .log();
 

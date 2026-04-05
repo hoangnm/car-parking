@@ -14,5 +14,5 @@ public class Parking {
     private Double latitude;
     private Double longitude;
     
-    private List<ParkingSlot> parkingSlots = new ArrayList<>();
+    private List<ParkingSession> parkingSessions = new ArrayList<>();
 }

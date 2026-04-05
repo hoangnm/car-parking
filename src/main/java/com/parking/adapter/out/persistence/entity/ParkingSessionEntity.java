@@ -6,10 +6,10 @@ import lombok.Setter;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "parking_slot")
+@Table(name = "parking_session")
 @Getter
 @Setter
-public class ParkingSlotEntity {
+public class ParkingSessionEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;

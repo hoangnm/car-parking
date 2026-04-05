@@ -20,5 +20,5 @@ public class ParkingEntity {
     private Double longitude;
     
     @OneToMany(mappedBy = "parking")
-    private List<ParkingSlotEntity> parkingSlots = new ArrayList<>();
+    private List<ParkingSessionEntity> parkingSessions = new ArrayList<>();
 }

@@ -60,15 +60,15 @@ erDiagram
         String location
         Integer capacity
     }
-    ParkingSlot {
+    ParkingSession {
         Long id PK
         Long carId FK
         Long parkingId FK
         DateTime startTime
         DateTime endTime
     }
-    Car ||--o{ ParkingSlot : "occupies"
-    Parking ||--o{ ParkingSlot : "contains"
+    Car ||--o{ ParkingSession : "occupies"
+    Parking ||--o{ ParkingSession : "contains"
 ```
 
 ## API Documentation
@@ -77,25 +77,26 @@ The API documentation is available through Swagger UI at:
 - Swagger UI: http://localhost:8080/swagger-ui/index.html
 - OpenAPI JSON: http://localhost:8080/v3/api-docs
 
+### Car Parking Management System
+
+## Overview
+A Hexagonal Architecture based Spring Boot application for managing car parking operations.
+
+## Architecture
+The application is structured using Hexagonal Architecture (Ports and Adapters) to separate concerns:
+- **Domain**: Pure business models (`Car`, `Parking`, `ParkingSession`)
+- **Application**: Business logic and use cases (`CarService`)
+- **Adapters In**: Controllers handling HTTP requests
+- **Adapters Out**: Repositories and Entity mapping for database access
+
+## Data Models
+- **Car**: Represents a vehicle (id, licensePlate, brand, model, color)
+- **Parking**: Represents a parking lot (id, location, capacity, coordinates)
+- **ParkingSession**: Represents an active or completed parking stay
+
 ## Features
-
-The system supports the following operations:
-
-### Parking Management
-- Register a car for parking (assigns an available parking slot)
-- Register a car's departure (records when a car leaves the parking lot)
-- Check if a specific car is currently in the parking lot
-
-### Car Information
-- Store car details (license plate, brand, model, color)
-- Look up car information by license plate
-
-### Capacity Management
-- Track parking lot capacity
-- Prevent parking when lot is full
-- Monitor occupied and available parking slots
-
-### Monitoring and Reporting
+- Dynamic calculation of active sessions to prevent overbooking
+- Complete tracking of vehicle entry and exit times
 - Track parking duration for each car
 - View parking lot occupancy status
 - Access historical parking records

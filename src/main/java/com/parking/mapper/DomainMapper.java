@@ -2,10 +2,10 @@ package com.parking.mapper;
 
 import com.parking.adapter.out.persistence.entity.CarEntity;
 import com.parking.adapter.out.persistence.entity.ParkingEntity;
-import com.parking.adapter.out.persistence.entity.ParkingSlotEntity;
+import com.parking.adapter.out.persistence.entity.ParkingSessionEntity;
 import com.parking.domain.model.Car;
 import com.parking.domain.model.Parking;
-import com.parking.domain.model.ParkingSlot;
+import com.parking.domain.model.ParkingSession;
 
 public class DomainMapper {
 
@@ -53,20 +53,20 @@ public class DomainMapper {
         return entity;
     }
 
-    public static ParkingSlot toDomain(ParkingSlotEntity entity) {
+    public static ParkingSession toDomain(ParkingSessionEntity entity) {
         if (entity == null) return null;
-        ParkingSlot slot = new ParkingSlot();
-        slot.setId(entity.getId());
-        slot.setCar(toDomain(entity.getCar()));
-        slot.setParking(toDomain(entity.getParking()));
-        slot.setStartTime(entity.getStartTime());
-        slot.setEndTime(entity.getEndTime());
-        return slot;
+        ParkingSession session = new ParkingSession();
+        session.setId(entity.getId());
+        session.setCar(toDomain(entity.getCar()));
+        session.setParking(toDomain(entity.getParking()));
+        session.setStartTime(entity.getStartTime());
+        session.setEndTime(entity.getEndTime());
+        return session;
     }
 
-    public static ParkingSlotEntity toEntity(ParkingSlot domain) {
+    public static ParkingSessionEntity toEntity(ParkingSession domain) {
         if (domain == null) return null;
-        ParkingSlotEntity entity = new ParkingSlotEntity();
+        ParkingSessionEntity entity = new ParkingSessionEntity();
         entity.setId(domain.getId());
         entity.setCar(toEntity(domain.getCar()));
         entity.setParking(toEntity(domain.getParking()));

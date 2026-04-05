@@ -4,7 +4,7 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 @Data
-public class ParkingSlotDTO {
+public class ParkingSessionDTO {
     private Integer id;
     private Integer carId;
     private Integer parkingId;
