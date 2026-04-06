@@ -37,6 +37,7 @@ public class CarService {
     this.parkingSessionRepository = parkingSessionRepository;
   }
 
+  @SuppressWarnings("null")
   @Transactional
   public ParkingSessionDTO parkCar(CarDTO carDTO, @NonNull Integer parkingId) {
     log.atDebug()
