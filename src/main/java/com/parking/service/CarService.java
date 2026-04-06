@@ -17,6 +17,7 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,7 +38,7 @@ public class CarService {
   }
 
   @Transactional
-  public ParkingSessionDTO parkCar(CarDTO carDTO, Integer parkingId) {
+  public ParkingSessionDTO parkCar(CarDTO carDTO, @NonNull Integer parkingId) {
     log.atDebug()
         .setMessage("Attempting to park car")
         .addKeyValue("action", "park_car")

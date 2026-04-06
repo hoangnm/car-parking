@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
+import org.springframework.lang.NonNull;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -31,7 +32,7 @@ public class ParkingController {
       })
   @PostMapping("/{parkingId}/cars")
   public ResponseEntity<ParkingSessionDTO> parkCar(
-      @RequestBody CarDTO carDTO, @PathVariable Integer parkingId) {
+      @RequestBody CarDTO carDTO, @PathVariable @NonNull Integer parkingId) {
     ParkingSessionDTO parkingSession = carService.parkCar(carDTO, parkingId);
     return ResponseEntity.ok(parkingSession);
   }
