@@ -23,6 +23,10 @@ down:
 clean:
 	./gradlew clean
 
+# Run unit tests
+test:
+	./gradlew test
+
 # Build the project
 build:
 	./gradlew clean build

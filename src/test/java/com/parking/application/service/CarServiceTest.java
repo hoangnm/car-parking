@@ -1,4 +1,4 @@
-package com.example.demo.service;
+package com.parking.application.service;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -7,15 +7,14 @@ import static org.mockito.Mockito.*;
 import com.parking.adapter.out.persistence.entity.CarEntity;
 import com.parking.adapter.out.persistence.entity.ParkingEntity;
 import com.parking.adapter.out.persistence.entity.ParkingSessionEntity;
+import com.parking.domain.exception.ParkingException;
+import com.parking.domain.exception.ResourceNotFoundException;
 import com.parking.domain.model.Car;
 import com.parking.dto.CarDTO;
 import com.parking.dto.ParkingSessionDTO;
-import com.parking.exception.ParkingException;
-import com.parking.exception.ResourceNotFoundException;
 import com.parking.repository.CarRepository;
 import com.parking.repository.ParkingRepository;
 import com.parking.repository.ParkingSessionRepository;
-import com.parking.service.CarService;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -27,11 +26,14 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class CarServiceTest {
 
-  @Mock private CarRepository carRepository;
+  @Mock
+  private CarRepository carRepository;
 
-  @Mock private ParkingRepository parkingRepository;
+  @Mock
+  private ParkingRepository parkingRepository;
 
-  @Mock private ParkingSessionRepository parkingSessionRepository;
+  @Mock
+  private ParkingSessionRepository parkingSessionRepository;
 
   private CarService carService;
 
@@ -91,7 +93,8 @@ class CarServiceTest {
     // Arrange
     when(parkingRepository.findById(1)).thenReturn(Optional.of(testParkingEntity));
     java.util.List<ParkingSessionEntity> fullSessions = new java.util.ArrayList<>();
-    for (int i = 0; i < 100; i++) fullSessions.add(new ParkingSessionEntity());
+    for (int i = 0; i < 100; i++)
+      fullSessions.add(new ParkingSessionEntity());
     when(parkingSessionRepository.findActiveSessions(anyInt(), any())).thenReturn(fullSessions);
 
     // Act & Assert

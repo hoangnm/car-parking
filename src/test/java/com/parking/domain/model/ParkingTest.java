@@ -2,7 +2,7 @@ package com.parking.domain.model;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import com.parking.exception.ParkingException;
+import com.parking.domain.exception.ParkingException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

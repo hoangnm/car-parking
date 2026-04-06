@@ -1,4 +1,4 @@
-package com.parking.controller;
+package com.parking.adapter.in.web;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -100,7 +100,8 @@ public class ParkingControllerTest {
                 .isBadRequest()); // Based on @RestControllerAdvice handling exceptions, usually bad
     // request or custom. ParkingException might be mapped to 400.
     // Let's see if there's a global exception handler.
-    // If not mapped, it might throw 500, we'll find out shortly when we run. If there's an
+    // If not mapped, it might throw 500, we'll find out shortly when we run. If
+    // there's an
     // exception handler it is typically 400.
   }
 
