@@ -1,46 +1,35 @@
 package com.parking.application.service;
 
-import com.parking.adapter.out.persistence.entity.CarEntity;
-import com.parking.adapter.out.persistence.entity.ParkingEntity;
-import com.parking.adapter.out.persistence.entity.ParkingSessionEntity;
 import com.parking.application.port.in.DepartCarUseCase;
 import com.parking.application.port.in.ParkCarUseCase;
+import com.parking.application.port.out.CarRepositoryPort;
+import com.parking.application.port.out.ParkingRepositoryPort;
+import com.parking.application.port.out.ParkingSessionRepositoryPort;
 import com.parking.domain.exception.ResourceNotFoundException;
 import com.parking.domain.model.Car;
 import com.parking.domain.model.Parking;
 import com.parking.domain.model.ParkingSession;
 import com.parking.dto.CarDTO;
 import com.parking.dto.ParkingSessionDTO;
-import com.parking.mapper.DomainMapper;
-import com.parking.repository.CarRepository;
-import com.parking.repository.ParkingRepository;
-import com.parking.repository.ParkingSessionRepository;
 import java.time.LocalDateTime;
+import java.util.List;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
-import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
+@SuppressWarnings("null")
 public class CarService implements ParkCarUseCase, DepartCarUseCase {
-  private final CarRepository carRepository;
-  private final ParkingRepository parkingRepository;
-  private final ParkingSessionRepository parkingSessionRepository;
+  private final CarRepositoryPort carRepositoryPort;
+  private final ParkingRepositoryPort parkingRepositoryPort;
+  private final ParkingSessionRepositoryPort parkingSessionRepositoryPort;
 
-  public CarService(
-      CarRepository carRepository,
-      ParkingRepository parkingRepository,
-      ParkingSessionRepository parkingSessionRepository) {
-    this.carRepository = carRepository;
-    this.parkingRepository = parkingRepository;
-    this.parkingSessionRepository = parkingSessionRepository;
-  }
-
-  @SuppressWarnings("null")
   @Transactional
-  public ParkingSessionDTO parkCar(CarDTO carDTO, @NonNull Integer parkingId) {
+  public ParkingSessionDTO parkCar(CarDTO carDTO, Integer parkingId) {
     log.atDebug()
         .setMessage("Attempting to park car")
         .addKeyValue("action", "park_car")
@@ -48,27 +37,21 @@ public class CarService implements ParkCarUseCase, DepartCarUseCase {
         .addKeyValue("parkingId", parkingId)
         .log();
 
-    ParkingEntity parkingEntity =
-        parkingRepository
+    Parking parking =
+        parkingRepositoryPort
             .findById(parkingId)
             .orElseThrow(
                 () -> new ResourceNotFoundException("Parking not found with id: " + parkingId));
-    Parking parking = DomainMapper.toDomain(parkingEntity);
 
     // Fetch active sessions and assign to the domain model
     LocalDateTime currentTime = LocalDateTime.now();
-    java.util.List<ParkingSessionEntity> activeSessionEntities =
-        parkingSessionRepository.findActiveSessions(parkingId, currentTime);
-    java.util.List<ParkingSession> activeSessions =
-        activeSessionEntities.stream()
-            .map(DomainMapper::toDomain)
-            .collect(java.util.stream.Collectors.toList());
+    List<ParkingSession> activeSessions =
+        parkingSessionRepositoryPort.findActiveSessions(parkingId, currentTime);
     parking.setActiveSessions(activeSessions);
 
     // Create or get car
-    CarEntity carEntity = carRepository.findByLicensePlate(carDTO.getLicensePlate());
-    Car car;
-    if (carEntity == null) {
+    Car car = carRepositoryPort.findByLicensePlate(carDTO.getLicensePlate());
+    if (car == null) {
       log.atDebug()
           .setMessage("Creating new car entry")
           .addKeyValue("action", "create_car")
@@ -76,11 +59,8 @@ public class CarService implements ParkCarUseCase, DepartCarUseCase {
           .log();
       car = new Car();
       BeanUtils.copyProperties(carDTO, car);
-      carEntity = DomainMapper.toEntity(car);
-      carEntity = carRepository.save(carEntity);
-      car = DomainMapper.toDomain(carEntity);
+      car = carRepositoryPort.save(car);
     } else {
-      car = DomainMapper.toDomain(carEntity);
       log.atDebug()
           .setMessage("Car found")
           .addKeyValue("id", car.getId())
@@ -91,9 +71,7 @@ public class CarService implements ParkCarUseCase, DepartCarUseCase {
     // Create parking slot via domain model
     ParkingSession parkingSession = parking.parkCar(car);
 
-    ParkingSessionEntity parkingSessionEntity = DomainMapper.toEntity(parkingSession);
-    parkingSessionEntity = parkingSessionRepository.save(parkingSessionEntity);
-    parkingSession = DomainMapper.toDomain(parkingSessionEntity);
+    parkingSession = parkingSessionRepositoryPort.save(parkingSession);
 
     log.atDebug()
         .setMessage("Car parked successfully")
@@ -115,9 +93,8 @@ public class CarService implements ParkCarUseCase, DepartCarUseCase {
     return parkingSessionDTO;
   }
 
-  @SuppressWarnings("null")
   @Transactional
-  public Car registerCarDeparture(@NonNull Integer parkingId, String licensePlate) {
+  public Car registerCarDeparture(Integer parkingId, String licensePlate) {
     log.atDebug()
         .setMessage("Attempting to remove car")
         .addKeyValue("action", "remove_car")
@@ -125,8 +102,8 @@ public class CarService implements ParkCarUseCase, DepartCarUseCase {
         .addKeyValue("parkingId", parkingId)
         .log();
 
-    CarEntity carEntity = carRepository.findByLicensePlate(licensePlate);
-    if (carEntity == null) {
+    Car car = carRepositoryPort.findByLicensePlate(licensePlate);
+    if (car == null) {
       log.atWarn()
           .setMessage("Car not found")
           .addKeyValue("action", "remove_car")
@@ -135,34 +112,27 @@ public class CarService implements ParkCarUseCase, DepartCarUseCase {
           .log();
       throw new ResourceNotFoundException("Car not found with license plate: " + licensePlate);
     }
-    Car car = DomainMapper.toDomain(carEntity);
 
-    ParkingEntity parkingEntity =
-        parkingRepository
+    Parking parking =
+        parkingRepositoryPort
             .findById(parkingId)
             .orElseThrow(
                 () -> new ResourceNotFoundException("Parking not found with id: " + parkingId));
-    Parking parking = DomainMapper.toDomain(parkingEntity);
 
     LocalDateTime currentTime = LocalDateTime.now();
-    java.util.List<ParkingSessionEntity> activeSessionEntities =
-        parkingSessionRepository.findActiveSessions(parkingId, currentTime);
-    java.util.List<ParkingSession> activeSessions =
-        activeSessionEntities.stream()
-            .map(DomainMapper::toDomain)
-            .collect(java.util.stream.Collectors.toList());
+    List<ParkingSession> activeSessions =
+        parkingSessionRepositoryPort.findActiveSessions(parkingId, currentTime);
     parking.setActiveSessions(activeSessions);
 
     ParkingSession endedSession = parking.departCar(car);
 
-    ParkingSessionEntity endedSessionEntity = DomainMapper.toEntity(endedSession);
-    parkingSessionRepository.save(endedSessionEntity);
+    parkingSessionRepositoryPort.save(endedSession);
 
     log.atDebug()
         .setMessage("Car removed successfully")
         .addKeyValue("action", "remove_complete")
         .addKeyValue("carId", car.getId())
-        .addKeyValue("sessionId", endedSessionEntity.getId())
+        .addKeyValue("sessionId", endedSession.getId())
         .addKeyValue("parkingId", parkingId)
         .log();
 
@@ -175,7 +145,6 @@ public class CarService implements ParkCarUseCase, DepartCarUseCase {
         .addKeyValue("action", "get_car")
         .addKeyValue("licensePlate", licensePlate)
         .log();
-    CarEntity carEntity = carRepository.findByLicensePlate(licensePlate);
-    return DomainMapper.toDomain(carEntity);
+    return carRepositoryPort.findByLicensePlate(licensePlate);
   }
 }

@@ -4,17 +4,16 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-import com.parking.adapter.out.persistence.entity.CarEntity;
-import com.parking.adapter.out.persistence.entity.ParkingEntity;
-import com.parking.adapter.out.persistence.entity.ParkingSessionEntity;
+import com.parking.application.port.out.CarRepositoryPort;
+import com.parking.application.port.out.ParkingRepositoryPort;
+import com.parking.application.port.out.ParkingSessionRepositoryPort;
 import com.parking.domain.exception.ParkingException;
 import com.parking.domain.exception.ResourceNotFoundException;
 import com.parking.domain.model.Car;
+import com.parking.domain.model.Parking;
+import com.parking.domain.model.ParkingSession;
 import com.parking.dto.CarDTO;
 import com.parking.dto.ParkingSessionDTO;
-import com.parking.repository.CarRepository;
-import com.parking.repository.ParkingRepository;
-import com.parking.repository.ParkingSessionRepository;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -26,38 +25,39 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class CarServiceTest {
 
-  @Mock private CarRepository carRepository;
+  @Mock private CarRepositoryPort carRepositoryPort;
 
-  @Mock private ParkingRepository parkingRepository;
+  @Mock private ParkingRepositoryPort parkingRepositoryPort;
 
-  @Mock private ParkingSessionRepository parkingSessionRepository;
+  @Mock private ParkingSessionRepositoryPort parkingSessionRepositoryPort;
 
   private CarService carService;
 
-  private CarEntity testCarEntity;
-  private ParkingEntity testParkingEntity;
-  private ParkingSessionEntity testParkingSessionEntity;
+  private Car testCar;
+  private Parking testParking;
+  private ParkingSession testParkingSession;
   private CarDTO testCarDTO;
 
   @BeforeEach
   void setUp() {
-    carService = new CarService(carRepository, parkingRepository, parkingSessionRepository);
+    carService =
+        new CarService(carRepositoryPort, parkingRepositoryPort, parkingSessionRepositoryPort);
 
     // Setup test data
-    testCarEntity = new CarEntity();
-    testCarEntity.setId(1);
-    testCarEntity.setLicensePlate("ABC123");
+    testCar = new Car();
+    testCar.setId(1);
+    testCar.setLicensePlate("ABC123");
 
-    testParkingEntity = new ParkingEntity();
-    testParkingEntity.setId(1);
-    testParkingEntity.setCapacity(100);
-    testParkingEntity.setLocation("Test Location");
+    testParking = new Parking();
+    testParking.setId(1);
+    testParking.setCapacity(100);
+    testParking.setLocation("Test Location");
 
-    testParkingSessionEntity = new ParkingSessionEntity();
-    testParkingSessionEntity.setId(1);
-    testParkingSessionEntity.setCar(testCarEntity);
-    testParkingSessionEntity.setParking(testParkingEntity);
-    testParkingSessionEntity.setStartTime(LocalDateTime.now());
+    testParkingSession = new ParkingSession();
+    testParkingSession.setId(1);
+    testParkingSession.setCar(testCar);
+    testParkingSession.setParking(testParking);
+    testParkingSession.setStartTime(LocalDateTime.now());
 
     testCarDTO = new CarDTO();
     testCarDTO.setLicensePlate("ABC123");
@@ -66,32 +66,32 @@ class CarServiceTest {
   @Test
   void parkCar_Success() {
     // Arrange
-    when(parkingRepository.findById(1)).thenReturn(Optional.of(testParkingEntity));
-    when(parkingSessionRepository.findActiveSessions(anyInt(), any()))
-        .thenReturn(java.util.Collections.emptyList());
-    when(carRepository.findByLicensePlate("ABC123")).thenReturn(null);
-    when(carRepository.save(any(CarEntity.class))).thenReturn(testCarEntity);
-    when(parkingSessionRepository.save(any(ParkingSessionEntity.class)))
-        .thenReturn(testParkingSessionEntity);
+    when(parkingRepositoryPort.findById(1)).thenReturn(Optional.of(testParking));
+    when(parkingSessionRepositoryPort.findActiveSessions(anyInt(), any()))
+        .thenReturn(new java.util.ArrayList<>());
+    when(carRepositoryPort.findByLicensePlate("ABC123")).thenReturn(null);
+    when(carRepositoryPort.save(any(Car.class))).thenReturn(testCar);
+    when(parkingSessionRepositoryPort.save(any(ParkingSession.class)))
+        .thenReturn(testParkingSession);
 
     // Act
     ParkingSessionDTO result = carService.parkCar(testCarDTO, 1);
 
     // Assert
     assertNotNull(result);
-    assertEquals(testParkingSessionEntity.getId(), result.getId());
-    assertEquals(testCarEntity.getId(), result.getCarId());
-    assertEquals(testParkingEntity.getId(), result.getParkingId());
-    verify(parkingSessionRepository).save(any(ParkingSessionEntity.class));
+    assertEquals(testParkingSession.getId(), result.getId());
+    assertEquals(testCar.getId(), result.getCarId());
+    assertEquals(testParking.getId(), result.getParkingId());
+    verify(parkingSessionRepositoryPort).save(any(ParkingSession.class));
   }
 
   @Test
   void parkCar_ParkingFull() {
     // Arrange
-    when(parkingRepository.findById(1)).thenReturn(Optional.of(testParkingEntity));
-    java.util.List<ParkingSessionEntity> fullSessions = new java.util.ArrayList<>();
-    for (int i = 0; i < 100; i++) fullSessions.add(new ParkingSessionEntity());
-    when(parkingSessionRepository.findActiveSessions(anyInt(), any())).thenReturn(fullSessions);
+    when(parkingRepositoryPort.findById(1)).thenReturn(Optional.of(testParking));
+    java.util.List<ParkingSession> fullSessions = new java.util.ArrayList<>();
+    for (int i = 0; i < 100; i++) fullSessions.add(new ParkingSession());
+    when(parkingSessionRepositoryPort.findActiveSessions(anyInt(), any())).thenReturn(fullSessions);
 
     // Act & Assert
     assertThrows(ParkingException.class, () -> carService.parkCar(testCarDTO, 1));
@@ -100,10 +100,10 @@ class CarServiceTest {
   @Test
   void parkCar_CarAlreadyParked() {
     // Arrange
-    when(parkingRepository.findById(1)).thenReturn(Optional.of(testParkingEntity));
-    when(parkingSessionRepository.findActiveSessions(anyInt(), any()))
-        .thenReturn(java.util.List.of(testParkingSessionEntity));
-    when(carRepository.findByLicensePlate("ABC123")).thenReturn(testCarEntity);
+    when(parkingRepositoryPort.findById(1)).thenReturn(Optional.of(testParking));
+    when(parkingSessionRepositoryPort.findActiveSessions(anyInt(), any()))
+        .thenReturn(java.util.List.of(testParkingSession));
+    when(carRepositoryPort.findByLicensePlate("ABC123")).thenReturn(testCar);
 
     // Act & Assert
     assertThrows(ParkingException.class, () -> carService.parkCar(testCarDTO, 1));
@@ -112,27 +112,27 @@ class CarServiceTest {
   @Test
   void removeCarFromParking_Success() {
     // Arrange
-    when(carRepository.findByLicensePlate("ABC123")).thenReturn(testCarEntity);
-    when(parkingRepository.findById(1)).thenReturn(Optional.of(testParkingEntity));
-    when(parkingSessionRepository.findActiveSessions(anyInt(), any()))
-        .thenReturn(java.util.List.of(testParkingSessionEntity));
-    when(parkingSessionRepository.save(any(ParkingSessionEntity.class)))
-        .thenReturn(testParkingSessionEntity);
+    when(carRepositoryPort.findByLicensePlate("ABC123")).thenReturn(testCar);
+    when(parkingRepositoryPort.findById(1)).thenReturn(Optional.of(testParking));
+    when(parkingSessionRepositoryPort.findActiveSessions(anyInt(), any()))
+        .thenReturn(java.util.List.of(testParkingSession));
+    when(parkingSessionRepositoryPort.save(any(ParkingSession.class)))
+        .thenReturn(testParkingSession);
 
     // Act
     Car result = carService.registerCarDeparture(1, "ABC123");
 
     // Assert
     assertNotNull(result);
-    assertEquals(testCarEntity.getId(), result.getId());
-    assertEquals(testCarEntity.getLicensePlate(), result.getLicensePlate());
-    verify(parkingSessionRepository).save(any(ParkingSessionEntity.class));
+    assertEquals(testCar.getId(), result.getId());
+    assertEquals(testCar.getLicensePlate(), result.getLicensePlate());
+    verify(parkingSessionRepositoryPort).save(any(ParkingSession.class));
   }
 
   @Test
   void removeCarFromParking_CarNotFound() {
     // Arrange
-    when(carRepository.findByLicensePlate("ABC123")).thenReturn(null);
+    when(carRepositoryPort.findByLicensePlate("ABC123")).thenReturn(null);
 
     // Act & Assert
     assertThrows(
@@ -142,10 +142,10 @@ class CarServiceTest {
   @Test
   void removeCarFromParking_CarNotParked() {
     // Arrange
-    when(carRepository.findByLicensePlate("ABC123")).thenReturn(testCarEntity);
-    when(parkingRepository.findById(1)).thenReturn(Optional.of(testParkingEntity));
-    when(parkingSessionRepository.findActiveSessions(anyInt(), any()))
-        .thenReturn(java.util.Collections.emptyList());
+    when(carRepositoryPort.findByLicensePlate("ABC123")).thenReturn(testCar);
+    when(parkingRepositoryPort.findById(1)).thenReturn(Optional.of(testParking));
+    when(parkingSessionRepositoryPort.findActiveSessions(anyInt(), any()))
+        .thenReturn(new java.util.ArrayList<>());
 
     // Act & Assert
     assertThrows(ParkingException.class, () -> carService.registerCarDeparture(1, "ABC123"));
@@ -154,21 +154,21 @@ class CarServiceTest {
   @Test
   void getCarByLicensePlate_Success() {
     // Arrange
-    when(carRepository.findByLicensePlate("ABC123")).thenReturn(testCarEntity);
+    when(carRepositoryPort.findByLicensePlate("ABC123")).thenReturn(testCar);
 
     // Act
     Car result = carService.getCarByLicensePlate("ABC123");
 
     // Assert
     assertNotNull(result);
-    assertEquals(testCarEntity.getId(), result.getId());
-    assertEquals(testCarEntity.getLicensePlate(), result.getLicensePlate());
+    assertEquals(testCar.getId(), result.getId());
+    assertEquals(testCar.getLicensePlate(), result.getLicensePlate());
   }
 
   @Test
   void getCarByLicensePlate_NotFound() {
     // Arrange
-    when(carRepository.findByLicensePlate("ABC123")).thenReturn(null);
+    when(carRepositoryPort.findByLicensePlate("ABC123")).thenReturn(null);
 
     // Act
     Car result = carService.getCarByLicensePlate("ABC123");
