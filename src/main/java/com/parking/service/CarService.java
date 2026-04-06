@@ -53,23 +53,14 @@ public class CarService {
                 () -> new ResourceNotFoundException("Parking not found with id: " + parkingId));
     Parking parking = DomainMapper.toDomain(parkingEntity);
 
-    // Check if parking is full
+    // Check active sessions
     LocalDateTime currentTime = LocalDateTime.now();
     long activeSessions = parkingSessionRepository.countActiveSessions(parkingId, currentTime);
-
-    if (activeSessions >= parking.getCapacity()) {
-      log.atWarn()
-          .setMessage("Parking is full")
-          .addKeyValue("action", "park_car")
-          .addKeyValue("status", "full")
-          .addKeyValue("parkingId", parkingId)
-          .log();
-      throw new ParkingException("Parking is full");
-    }
 
     // Create or get car
     CarEntity carEntity = carRepository.findByLicensePlate(carDTO.getLicensePlate());
     Car car;
+    boolean isCarAlreadyParked = false;
     if (carEntity == null) {
       log.atDebug()
           .setMessage("Creating new car entry")
@@ -91,24 +82,18 @@ public class CarService {
       Optional<ParkingSessionEntity> activeParkingEntity =
           parkingSessionRepository.findByCarIdAndParkingIdAndEndTimeIsNull(car.getId(), parkingId);
       if (activeParkingEntity.isPresent()) {
+        isCarAlreadyParked = true;
         log.atWarn()
             .setMessage("Car already parked")
             .addKeyValue("carId", car.getId())
             .addKeyValue("parkingId", parkingId)
             .addKeyValue("status", "duplicate")
             .log();
-        throw new ParkingException(
-            "Car with license plate "
-                + carDTO.getLicensePlate()
-                + " is already parked in this parking lot");
       }
     }
 
-    // Create parking slot
-    ParkingSession parkingSession = new ParkingSession();
-    parkingSession.setCar(car);
-    parkingSession.setParking(parking);
-    parkingSession.setStartTime(LocalDateTime.now());
+    // Create parking slot via domain model
+    ParkingSession parkingSession = parking.parkCar(car, activeSessions, isCarAlreadyParked);
 
     ParkingSessionEntity parkingSessionEntity = DomainMapper.toEntity(parkingSession);
     parkingSessionEntity = parkingSessionRepository.save(parkingSessionEntity);
@@ -170,7 +155,9 @@ public class CarService {
     }
 
     ParkingSessionEntity slotEntity = activeSlotEntity.get();
-    slotEntity.setEndTime(LocalDateTime.now());
+    ParkingSession session = DomainMapper.toDomain(slotEntity);
+    session.endSession();
+    slotEntity.setEndTime(session.getEndTime());
     parkingSessionRepository.save(slotEntity);
 
     log.atDebug()

@@ -12,4 +12,11 @@ public class ParkingSession {
   private Parking parking;
   private LocalDateTime startTime;
   private LocalDateTime endTime;
+
+  public void endSession() {
+    if (this.endTime != null) {
+      throw new IllegalStateException("Parking session has already ended");
+    }
+    this.endTime = LocalDateTime.now();
+  }
 }
