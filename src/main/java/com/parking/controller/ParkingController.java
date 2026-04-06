@@ -47,7 +47,7 @@ public class ParkingController {
       })
   @PutMapping("/{parkingId}/cars/{licensePlate}")
   public ResponseEntity<Car> registerCarDeparture(
-      @PathVariable Integer parkingId, @PathVariable String licensePlate) {
+      @PathVariable @NonNull Integer parkingId, @PathVariable String licensePlate) {
     Car removedCar = carService.registerCarDeparture(parkingId, licensePlate);
     if (removedCar != null) {
       return ResponseEntity.ok(removedCar);

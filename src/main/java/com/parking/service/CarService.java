@@ -14,7 +14,6 @@ import com.parking.repository.CarRepository;
 import com.parking.repository.ParkingRepository;
 import com.parking.repository.ParkingSessionRepository;
 import java.time.LocalDateTime;
-import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.lang.NonNull;
@@ -114,8 +113,9 @@ public class CarService {
     return parkingSessionDTO;
   }
 
+  @SuppressWarnings("null")
   @Transactional
-  public Car registerCarDeparture(Integer parkingId, String licensePlate) {
+  public Car registerCarDeparture(@NonNull Integer parkingId, String licensePlate) {
     log.atDebug()
         .setMessage("Attempting to remove car")
         .addKeyValue("action", "remove_car")
@@ -135,31 +135,32 @@ public class CarService {
     }
     Car car = DomainMapper.toDomain(carEntity);
 
-    Optional<ParkingSessionEntity> activeSlotEntity =
-        parkingSessionRepository.findByCarIdAndParkingIdAndEndTimeIsNull(car.getId(), parkingId);
-    if (!activeSlotEntity.isPresent()) {
-      log.atWarn()
-          .setMessage("Car not parked in lot")
-          .addKeyValue("action", "remove_car")
-          .addKeyValue("carId", car.getId())
-          .addKeyValue("parkingId", parkingId)
-          .addKeyValue("status", "not_found")
-          .log();
-      throw new ParkingException(
-          "Car with license plate " + licensePlate + " is not parked in this parking lot");
-    }
+    ParkingEntity parkingEntity =
+        parkingRepository
+            .findById(parkingId)
+            .orElseThrow(
+                () -> new ResourceNotFoundException("Parking not found with id: " + parkingId));
+    Parking parking = DomainMapper.toDomain(parkingEntity);
 
-    ParkingSessionEntity slotEntity = activeSlotEntity.get();
-    ParkingSession session = DomainMapper.toDomain(slotEntity);
-    session.endSession();
-    slotEntity.setEndTime(session.getEndTime());
-    parkingSessionRepository.save(slotEntity);
+    LocalDateTime currentTime = LocalDateTime.now();
+    java.util.List<ParkingSessionEntity> activeSessionEntities =
+        parkingSessionRepository.findActiveSessions(parkingId, currentTime);
+    java.util.List<ParkingSession> activeSessions =
+        activeSessionEntities.stream()
+            .map(DomainMapper::toDomain)
+            .collect(java.util.stream.Collectors.toList());
+    parking.setActiveSessions(activeSessions);
+
+    ParkingSession endedSession = parking.departCar(car);
+
+    ParkingSessionEntity endedSessionEntity = DomainMapper.toEntity(endedSession);
+    parkingSessionRepository.save(endedSessionEntity);
 
     log.atDebug()
         .setMessage("Car removed successfully")
         .addKeyValue("action", "remove_complete")
         .addKeyValue("carId", car.getId())
-        .addKeyValue("sessionId", slotEntity.getId())
+        .addKeyValue("sessionId", endedSessionEntity.getId())
         .addKeyValue("parkingId", parkingId)
         .log();
 

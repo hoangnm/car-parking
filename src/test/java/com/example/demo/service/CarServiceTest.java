@@ -114,8 +114,9 @@ class CarServiceTest {
   void removeCarFromParking_Success() {
     // Arrange
     when(carRepository.findByLicensePlate("ABC123")).thenReturn(testCarEntity);
-    when(parkingSessionRepository.findByCarIdAndParkingIdAndEndTimeIsNull(anyInt(), anyInt()))
-        .thenReturn(Optional.of(testParkingSessionEntity));
+    when(parkingRepository.findById(1)).thenReturn(Optional.of(testParkingEntity));
+    when(parkingSessionRepository.findActiveSessions(anyInt(), any()))
+        .thenReturn(java.util.List.of(testParkingSessionEntity));
     when(parkingSessionRepository.save(any(ParkingSessionEntity.class)))
         .thenReturn(testParkingSessionEntity);
 
@@ -143,8 +144,9 @@ class CarServiceTest {
   void removeCarFromParking_CarNotParked() {
     // Arrange
     when(carRepository.findByLicensePlate("ABC123")).thenReturn(testCarEntity);
-    when(parkingSessionRepository.findByCarIdAndParkingIdAndEndTimeIsNull(anyInt(), anyInt()))
-        .thenReturn(Optional.empty());
+    when(parkingRepository.findById(1)).thenReturn(Optional.of(testParkingEntity));
+    when(parkingSessionRepository.findActiveSessions(anyInt(), any()))
+        .thenReturn(java.util.Collections.emptyList());
 
     // Act & Assert
     assertThrows(ParkingException.class, () -> carService.registerCarDeparture(1, "ABC123"));

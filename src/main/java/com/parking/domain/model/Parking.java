@@ -42,4 +42,20 @@ public class Parking {
     this.activeSessions.add(parkingSession);
     return parkingSession;
   }
+
+  public ParkingSession departCar(Car car) {
+    ParkingSession sessionToDepart =
+        this.activeSessions.stream()
+            .filter(session -> session.getCar().getLicensePlate().equals(car.getLicensePlate()))
+            .findFirst()
+            .orElseThrow(
+                () ->
+                    new ParkingException(
+                        "Car with license plate "
+                            + car.getLicensePlate()
+                            + " is not parked in this parking lot"));
+
+    sessionToDepart.endSession();
+    return sessionToDepart;
+  }
 }

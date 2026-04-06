@@ -69,4 +69,30 @@ class ParkingTest {
 
     assertTrue(exception.getMessage().contains("is already parked in this parking lot"));
   }
+
+  @Test
+  void testDepartCar_Success() {
+    ParkingSession session = new ParkingSession();
+    session.setCar(car);
+    session.setStartTime(java.time.LocalDateTime.now().minusHours(1));
+    parking.getActiveSessions().add(session);
+
+    ParkingSession departedSession = parking.departCar(car);
+
+    assertNotNull(departedSession);
+    assertEquals(car, departedSession.getCar());
+    assertNotNull(departedSession.getEndTime());
+  }
+
+  @Test
+  void testDepartCar_CarNotParked() {
+    ParkingException exception =
+        assertThrows(
+            ParkingException.class,
+            () -> {
+              parking.departCar(car);
+            });
+
+    assertTrue(exception.getMessage().contains("not parked in this parking lot"));
+  }
 }
