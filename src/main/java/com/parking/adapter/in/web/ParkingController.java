@@ -1,9 +1,10 @@
-package com.parking.controller;
+package com.parking.adapter.in.web;
 
+import com.parking.application.port.in.DepartCarUseCase;
+import com.parking.application.port.in.ParkCarUseCase;
 import com.parking.domain.model.Car;
 import com.parking.dto.CarDTO;
 import com.parking.dto.ParkingSessionDTO;
-import com.parking.service.CarService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -17,10 +18,12 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name = "Parking Controller", description = "Endpoints for managing parking operations")
 public class ParkingController {
 
-  private final CarService carService;
+  private final ParkCarUseCase parkCarUseCase;
+  private final DepartCarUseCase departCarUseCase;
 
-  public ParkingController(CarService carService) {
-    this.carService = carService;
+  public ParkingController(ParkCarUseCase parkCarUseCase, DepartCarUseCase departCarUseCase) {
+    this.parkCarUseCase = parkCarUseCase;
+    this.departCarUseCase = departCarUseCase;
   }
 
   @Operation(summary = "Park a car", description = "Parks a car in a specific parking lot")
@@ -33,7 +36,7 @@ public class ParkingController {
   @PostMapping("/{parkingId}/cars")
   public ResponseEntity<ParkingSessionDTO> parkCar(
       @RequestBody CarDTO carDTO, @PathVariable @NonNull Integer parkingId) {
-    ParkingSessionDTO parkingSession = carService.parkCar(carDTO, parkingId);
+    ParkingSessionDTO parkingSession = parkCarUseCase.parkCar(carDTO, parkingId);
     return ResponseEntity.ok(parkingSession);
   }
 
@@ -48,7 +51,7 @@ public class ParkingController {
   @PutMapping("/{parkingId}/cars/{licensePlate}")
   public ResponseEntity<Car> registerCarDeparture(
       @PathVariable @NonNull Integer parkingId, @PathVariable String licensePlate) {
-    Car removedCar = carService.registerCarDeparture(parkingId, licensePlate);
+    Car removedCar = departCarUseCase.registerCarDeparture(parkingId, licensePlate);
     if (removedCar != null) {
       return ResponseEntity.ok(removedCar);
     }

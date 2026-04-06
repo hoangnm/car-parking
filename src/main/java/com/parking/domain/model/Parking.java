@@ -1,6 +1,6 @@
 package com.parking.domain.model;
 
-import com.parking.exception.ParkingException;
+import com.parking.domain.exception.ParkingException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;

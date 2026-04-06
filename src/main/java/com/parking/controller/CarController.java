@@ -1,7 +1,7 @@
 package com.parking.controller;
 
+import com.parking.application.service.CarService;
 import com.parking.domain.model.Car;
-import com.parking.service.CarService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;

@@ -1,4 +1,4 @@
-package com.parking.exception;
+package com.parking.domain.exception;
 
 public class ResourceNotFoundException extends RuntimeException {
   public ResourceNotFoundException(String message) {

@@ -1,14 +1,16 @@
-package com.parking.service;
+package com.parking.application.service;
 
+import com.parking.application.port.in.DepartCarUseCase;
+import com.parking.application.port.in.ParkCarUseCase;
 import com.parking.adapter.out.persistence.entity.CarEntity;
 import com.parking.adapter.out.persistence.entity.ParkingEntity;
 import com.parking.adapter.out.persistence.entity.ParkingSessionEntity;
+import com.parking.domain.exception.ResourceNotFoundException;
 import com.parking.domain.model.Car;
 import com.parking.domain.model.Parking;
 import com.parking.domain.model.ParkingSession;
 import com.parking.dto.CarDTO;
 import com.parking.dto.ParkingSessionDTO;
-import com.parking.exception.*;
 import com.parking.mapper.DomainMapper;
 import com.parking.repository.CarRepository;
 import com.parking.repository.ParkingRepository;
@@ -22,7 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service
-public class CarService {
+public class CarService implements ParkCarUseCase, DepartCarUseCase {
   private final CarRepository carRepository;
   private final ParkingRepository parkingRepository;
   private final ParkingSessionRepository parkingSessionRepository;
