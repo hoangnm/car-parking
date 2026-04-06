@@ -7,8 +7,9 @@ import static org.mockito.Mockito.*;
 import com.parking.application.port.out.CarRepositoryPort;
 import com.parking.application.port.out.ParkingRepositoryPort;
 import com.parking.application.port.out.ParkingSessionRepositoryPort;
+import com.parking.domain.exception.CarNotFoundException;
 import com.parking.domain.exception.ParkingException;
-import com.parking.domain.exception.ResourceNotFoundException;
+import com.parking.domain.exception.ParkingNotFoundException;
 import com.parking.domain.model.Car;
 import com.parking.domain.model.Parking;
 import com.parking.domain.model.ParkingSession;
@@ -98,6 +99,15 @@ class CarServiceTest {
   }
 
   @Test
+  void parkCar_ParkingNotFound() {
+    // Arrange
+    when(parkingRepositoryPort.findById(1)).thenReturn(Optional.empty());
+
+    // Act & Assert
+    assertThrows(ParkingNotFoundException.class, () -> carService.parkCar(testCarDTO, 1));
+  }
+
+  @Test
   void parkCar_CarAlreadyParked() {
     // Arrange
     when(parkingRepositoryPort.findById(1)).thenReturn(Optional.of(testParking));
@@ -135,8 +145,7 @@ class CarServiceTest {
     when(carRepositoryPort.findByLicensePlate("ABC123")).thenReturn(null);
 
     // Act & Assert
-    assertThrows(
-        ResourceNotFoundException.class, () -> carService.registerCarDeparture(1, "ABC123"));
+    assertThrows(CarNotFoundException.class, () -> carService.registerCarDeparture(1, "ABC123"));
   }
 
   @Test

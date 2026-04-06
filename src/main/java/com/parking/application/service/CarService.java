@@ -5,7 +5,8 @@ import com.parking.application.port.in.ParkCarUseCase;
 import com.parking.application.port.out.CarRepositoryPort;
 import com.parking.application.port.out.ParkingRepositoryPort;
 import com.parking.application.port.out.ParkingSessionRepositoryPort;
-import com.parking.domain.exception.ResourceNotFoundException;
+import com.parking.domain.exception.CarNotFoundException;
+import com.parking.domain.exception.ParkingNotFoundException;
 import com.parking.domain.model.Car;
 import com.parking.domain.model.Parking;
 import com.parking.domain.model.ParkingSession;
@@ -40,8 +41,7 @@ public class CarService implements ParkCarUseCase, DepartCarUseCase {
     Parking parking =
         parkingRepositoryPort
             .findById(parkingId)
-            .orElseThrow(
-                () -> new ResourceNotFoundException("Parking not found with id: " + parkingId));
+            .orElseThrow(() -> new ParkingNotFoundException(parkingId));
 
     // Fetch active sessions and assign to the domain model
     LocalDateTime currentTime = LocalDateTime.now();
@@ -110,14 +110,13 @@ public class CarService implements ParkCarUseCase, DepartCarUseCase {
           .addKeyValue("licensePlate", licensePlate)
           .addKeyValue("status", "not_found")
           .log();
-      throw new ResourceNotFoundException("Car not found with license plate: " + licensePlate);
+      throw new CarNotFoundException(licensePlate);
     }
 
     Parking parking =
         parkingRepositoryPort
             .findById(parkingId)
-            .orElseThrow(
-                () -> new ResourceNotFoundException("Parking not found with id: " + parkingId));
+            .orElseThrow(() -> new ParkingNotFoundException(parkingId));
 
     LocalDateTime currentTime = LocalDateTime.now();
     List<ParkingSession> activeSessions =
