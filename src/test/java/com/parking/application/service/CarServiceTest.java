@@ -26,14 +26,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class CarServiceTest {
 
-  @Mock
-  private CarRepository carRepository;
+  @Mock private CarRepository carRepository;
 
-  @Mock
-  private ParkingRepository parkingRepository;
+  @Mock private ParkingRepository parkingRepository;
 
-  @Mock
-  private ParkingSessionRepository parkingSessionRepository;
+  @Mock private ParkingSessionRepository parkingSessionRepository;
 
   private CarService carService;
 
@@ -93,8 +90,7 @@ class CarServiceTest {
     // Arrange
     when(parkingRepository.findById(1)).thenReturn(Optional.of(testParkingEntity));
     java.util.List<ParkingSessionEntity> fullSessions = new java.util.ArrayList<>();
-    for (int i = 0; i < 100; i++)
-      fullSessions.add(new ParkingSessionEntity());
+    for (int i = 0; i < 100; i++) fullSessions.add(new ParkingSessionEntity());
     when(parkingSessionRepository.findActiveSessions(anyInt(), any())).thenReturn(fullSessions);
 
     // Act & Assert
