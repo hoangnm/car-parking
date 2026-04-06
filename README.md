@@ -83,11 +83,64 @@ The API documentation is available through Swagger UI at:
 A Hexagonal Architecture based Spring Boot application for managing car parking operations.
 
 ## Architecture
-The application is structured using Hexagonal Architecture (Ports and Adapters) to separate concerns:
-- **Domain**: Pure business models (`Car`, `Parking`, `ParkingSession`)
-- **Application**: Business logic and use cases (`CarService`)
-- **Adapters In**: Controllers handling HTTP requests
-- **Adapters Out**: Repositories and Entity mapping for database access
+
+### Hexagonal Architecture Overview
+This application follows **Hexagonal Architecture** (also known as Ports and Adapters), a design pattern that isolates business logic from external concerns. The core idea is to place business logic at the center, surrounded by adapters that handle external interactions like HTTP requests and database operations.
+
+#### Key Principles:
+1. **Independence**: The core application logic is independent of frameworks and external systems
+2. **Testability**: Business logic can be tested without external dependencies
+3. **Flexibility**: External systems can be swapped without affecting core logic
+4. **Maintainability**: Clear separation of concerns makes the codebase easier to maintain
+
+#### Architecture Layers:
+
+**Core Domain Layer** (`domain/`)
+- Pure business models: `Car`, `Parking`, `ParkingSession`
+- Domain exceptions and value objects
+- No dependencies on external frameworks or adapters
+- Contains the essential business rules and logic
+
+**Application Layer** (`application/`)
+- **Ports**: Define contracts/interfaces for communication (`service/`)
+- **Services**: Implement business use cases and orchestration logic
+- Coordinates between domain models and adapters
+- Handles application-specific logic and workflows
+
+**Input Adapters** (`adapter/in/`)
+- **Controllers**: Receive HTTP requests and translate them to service calls
+- Convert incoming HTTP requests to domain objects
+- Transform domain responses back to HTTP responses
+- Handle request validation and error responses
+
+**Output Adapters** (`adapter/out/` and `repository/`)
+- **Repositories**: Implement data persistence patterns
+- **Mappers**: Convert between domain entities and database entities
+- Handle database operations and external service calls
+- Translate domain models to/from external data formats
+
+#### Project Structure:
+```
+src/main/java/com/parking/
+├── domain/              # Core business logic (independent)
+│   ├── model/          # Domain entities
+│   └── exception/      # Domain-specific exceptions
+├── application/         # Use cases and orchestration
+│   ├── port/           # Port interfaces
+│   └── service/        # Business logic services
+├── adapter/
+│   ├── in/             # Input adapters (controllers)
+│   └── out/            # Output adapters
+├── repository/          # Data persistence adapters
+├── mapper/              # Entity to DTO conversions
+└── dto/                 # Data transfer objects
+```
+
+#### Benefits:
+- **Loose Coupling**: Core business logic doesn't depend on external systems
+- **Easy Testing**: Test business logic without mocking external systems
+- **Framework Agnostic**: Can change from Spring to another framework without affecting core logic
+- **Clear Boundaries**: Easy to understand where each responsibility belongs
 
 ## Data Models
 - **Car**: Represents a vehicle (id, licensePlate, brand, model, color)
