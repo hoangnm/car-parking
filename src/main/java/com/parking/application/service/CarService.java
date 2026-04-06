@@ -1,10 +1,10 @@
 package com.parking.application.service;
 
-import com.parking.application.port.in.DepartCarUseCase;
-import com.parking.application.port.in.ParkCarUseCase;
 import com.parking.adapter.out.persistence.entity.CarEntity;
 import com.parking.adapter.out.persistence.entity.ParkingEntity;
 import com.parking.adapter.out.persistence.entity.ParkingSessionEntity;
+import com.parking.application.port.in.DepartCarUseCase;
+import com.parking.application.port.in.ParkCarUseCase;
 import com.parking.domain.exception.ResourceNotFoundException;
 import com.parking.domain.model.Car;
 import com.parking.domain.model.Parking;

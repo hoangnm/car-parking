@@ -2,7 +2,6 @@ package com.parking.adapter.in.web.exception;
 
 import com.parking.domain.exception.ParkingException;
 import com.parking.domain.exception.ResourceNotFoundException;
-
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
@@ -14,7 +13,10 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
-  @ExceptionHandler({ResourceNotFoundException.class, com.parking.adapter.in.web.exception.ResourceNotFoundException.class})
+  @ExceptionHandler({
+    ResourceNotFoundException.class,
+    com.parking.adapter.in.web.exception.ResourceNotFoundException.class
+  })
   public ResponseEntity<Object> handleResourceNotFoundException(RuntimeException ex) {
     Map<String, Object> body = new HashMap<>();
     body.put("timestamp", LocalDateTime.now());
