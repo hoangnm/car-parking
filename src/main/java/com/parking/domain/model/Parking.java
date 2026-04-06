@@ -16,12 +16,17 @@ public class Parking {
   private Double latitude;
   private Double longitude;
 
-  private List<ParkingSession> parkingSessions = new ArrayList<>();
+  private List<ParkingSession> activeSessions = new ArrayList<>();
 
-  public ParkingSession parkCar(Car car, long activeSessions, boolean isCarAlreadyParked) {
-    if (activeSessions >= this.capacity) {
+  public ParkingSession parkCar(Car car) {
+    if (this.activeSessions.size() >= this.capacity) {
       throw new ParkingException("Parking is full");
     }
+
+    boolean isCarAlreadyParked =
+        this.activeSessions.stream()
+            .anyMatch(session -> session.getCar().getLicensePlate().equals(car.getLicensePlate()));
+
     if (isCarAlreadyParked) {
       throw new ParkingException(
           "Car with license plate "
@@ -34,6 +39,7 @@ public class Parking {
     parkingSession.setParking(this);
     parkingSession.setStartTime(LocalDateTime.now());
 
+    this.activeSessions.add(parkingSession);
     return parkingSession;
   }
 }

@@ -20,6 +20,11 @@ public interface ParkingSessionRepository extends JpaRepository<ParkingSessionEn
   long countActiveSessions(
       @Param("parkingId") Integer parkingId, @Param("currentTime") LocalDateTime currentTime);
 
+  @Query(
+      "SELECT ps FROM ParkingSessionEntity ps WHERE ps.parking.id = :parkingId AND (ps.endTime IS NULL OR ps.endTime > :currentTime)")
+  List<ParkingSessionEntity> findActiveSessions(
+      @Param("parkingId") Integer parkingId, @Param("currentTime") LocalDateTime currentTime);
+
   Optional<ParkingSessionEntity> findByCarIdAndParkingIdAndEndTimeIsNull(
       Integer carId, Integer parkingId);
 }

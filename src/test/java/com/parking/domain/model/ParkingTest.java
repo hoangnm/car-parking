@@ -25,10 +25,7 @@ class ParkingTest {
 
   @Test
   void testParkCar_Success() {
-    long activeSessions = 5;
-    boolean isCarAlreadyParked = false;
-
-    ParkingSession session = parking.parkCar(car, activeSessions, isCarAlreadyParked);
+    ParkingSession session = parking.parkCar(car);
 
     assertNotNull(session);
     assertEquals(parking, session.getParking());
@@ -39,14 +36,19 @@ class ParkingTest {
 
   @Test
   void testParkCar_ParkingFull() {
-    long activeSessions = 10;
-    boolean isCarAlreadyParked = false;
+    for (int i = 0; i < 10; i++) {
+      Car dummyCar = new Car();
+      dummyCar.setLicensePlate("DUMMY-" + i);
+      ParkingSession dummySession = new ParkingSession();
+      dummySession.setCar(dummyCar);
+      parking.getActiveSessions().add(dummySession);
+    }
 
     ParkingException exception =
         assertThrows(
             ParkingException.class,
             () -> {
-              parking.parkCar(car, activeSessions, isCarAlreadyParked);
+              parking.parkCar(car);
             });
 
     assertEquals("Parking is full", exception.getMessage());
@@ -54,14 +56,15 @@ class ParkingTest {
 
   @Test
   void testParkCar_CarAlreadyParked() {
-    long activeSessions = 5;
-    boolean isCarAlreadyParked = true;
+    ParkingSession dummySession = new ParkingSession();
+    dummySession.setCar(car);
+    parking.getActiveSessions().add(dummySession);
 
     ParkingException exception =
         assertThrows(
             ParkingException.class,
             () -> {
-              parking.parkCar(car, activeSessions, isCarAlreadyParked);
+              parking.parkCar(car);
             });
 
     assertTrue(exception.getMessage().contains("is already parked in this parking lot"));

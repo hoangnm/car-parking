@@ -54,14 +54,19 @@ public class CarService {
                 () -> new ResourceNotFoundException("Parking not found with id: " + parkingId));
     Parking parking = DomainMapper.toDomain(parkingEntity);
 
-    // Check active sessions
+    // Fetch active sessions and assign to the domain model
     LocalDateTime currentTime = LocalDateTime.now();
-    long activeSessions = parkingSessionRepository.countActiveSessions(parkingId, currentTime);
+    java.util.List<ParkingSessionEntity> activeSessionEntities =
+        parkingSessionRepository.findActiveSessions(parkingId, currentTime);
+    java.util.List<ParkingSession> activeSessions =
+        activeSessionEntities.stream()
+            .map(DomainMapper::toDomain)
+            .collect(java.util.stream.Collectors.toList());
+    parking.setActiveSessions(activeSessions);
 
     // Create or get car
     CarEntity carEntity = carRepository.findByLicensePlate(carDTO.getLicensePlate());
     Car car;
-    boolean isCarAlreadyParked = false;
     if (carEntity == null) {
       log.atDebug()
           .setMessage("Creating new car entry")
@@ -80,21 +85,10 @@ public class CarService {
           .addKeyValue("id", car.getId())
           .addKeyValue("action", "check_active_slot")
           .log();
-      Optional<ParkingSessionEntity> activeParkingEntity =
-          parkingSessionRepository.findByCarIdAndParkingIdAndEndTimeIsNull(car.getId(), parkingId);
-      if (activeParkingEntity.isPresent()) {
-        isCarAlreadyParked = true;
-        log.atWarn()
-            .setMessage("Car already parked")
-            .addKeyValue("carId", car.getId())
-            .addKeyValue("parkingId", parkingId)
-            .addKeyValue("status", "duplicate")
-            .log();
-      }
     }
 
     // Create parking slot via domain model
-    ParkingSession parkingSession = parking.parkCar(car, activeSessions, isCarAlreadyParked);
+    ParkingSession parkingSession = parking.parkCar(car);
 
     ParkingSessionEntity parkingSessionEntity = DomainMapper.toEntity(parkingSession);
     parkingSessionEntity = parkingSessionRepository.save(parkingSessionEntity);

@@ -68,7 +68,8 @@ class CarServiceTest {
   void parkCar_Success() {
     // Arrange
     when(parkingRepository.findById(1)).thenReturn(Optional.of(testParkingEntity));
-    when(parkingSessionRepository.countActiveSessions(anyInt(), any())).thenReturn(0L);
+    when(parkingSessionRepository.findActiveSessions(anyInt(), any()))
+        .thenReturn(java.util.Collections.emptyList());
     when(carRepository.findByLicensePlate("ABC123")).thenReturn(null);
     when(carRepository.save(any(CarEntity.class))).thenReturn(testCarEntity);
     when(parkingSessionRepository.save(any(ParkingSessionEntity.class)))
@@ -89,7 +90,9 @@ class CarServiceTest {
   void parkCar_ParkingFull() {
     // Arrange
     when(parkingRepository.findById(1)).thenReturn(Optional.of(testParkingEntity));
-    when(parkingSessionRepository.countActiveSessions(anyInt(), any())).thenReturn(100L);
+    java.util.List<ParkingSessionEntity> fullSessions = new java.util.ArrayList<>();
+    for (int i = 0; i < 100; i++) fullSessions.add(new ParkingSessionEntity());
+    when(parkingSessionRepository.findActiveSessions(anyInt(), any())).thenReturn(fullSessions);
 
     // Act & Assert
     assertThrows(ParkingException.class, () -> carService.parkCar(testCarDTO, 1));
@@ -99,10 +102,9 @@ class CarServiceTest {
   void parkCar_CarAlreadyParked() {
     // Arrange
     when(parkingRepository.findById(1)).thenReturn(Optional.of(testParkingEntity));
-    when(parkingSessionRepository.countActiveSessions(anyInt(), any())).thenReturn(0L);
+    when(parkingSessionRepository.findActiveSessions(anyInt(), any()))
+        .thenReturn(java.util.List.of(testParkingSessionEntity));
     when(carRepository.findByLicensePlate("ABC123")).thenReturn(testCarEntity);
-    when(parkingSessionRepository.findByCarIdAndParkingIdAndEndTimeIsNull(anyInt(), anyInt()))
-        .thenReturn(Optional.of(testParkingSessionEntity));
 
     // Act & Assert
     assertThrows(ParkingException.class, () -> carService.parkCar(testCarDTO, 1));
