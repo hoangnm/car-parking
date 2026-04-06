@@ -6,9 +6,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.parking.adapter.out.persistence.entity.ParkingApiTokenEntity;
 import com.parking.adapter.out.persistence.entity.ParkingEntity;
 import com.parking.dto.CarDTO;
 import com.parking.repository.CarRepository;
+import com.parking.repository.ParkingApiTokenRepository;
 import com.parking.repository.ParkingRepository;
 import com.parking.repository.ParkingSessionRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -35,12 +37,16 @@ public class ParkingControllerTest {
 
   @Autowired private ParkingSessionRepository parkingSessionRepository;
 
+  @Autowired private ParkingApiTokenRepository parkingApiTokenRepository;
+
   private ParkingEntity testParking;
+  private static final String TEST_TOKEN = "test-api-token-abc123";
 
   @BeforeEach
   void setUp() {
     parkingSessionRepository.deleteAll();
     carRepository.deleteAll();
+    parkingApiTokenRepository.deleteAll();
     parkingRepository.deleteAll();
 
     ParkingEntity parking = new ParkingEntity();
@@ -49,6 +55,11 @@ public class ParkingControllerTest {
     parking.setLatitude(10.0);
     parking.setLongitude(20.0);
     testParking = parkingRepository.save(parking);
+
+    ParkingApiTokenEntity tokenEntity = new ParkingApiTokenEntity();
+    tokenEntity.setParkingId(testParking.getId());
+    tokenEntity.setToken(TEST_TOKEN);
+    parkingApiTokenRepository.save(tokenEntity);
   }
 
   @Test
@@ -62,6 +73,7 @@ public class ParkingControllerTest {
     mockMvc
         .perform(
             post("/api/parkings/" + testParking.getId() + "/cars")
+                .header("X-API-Token", TEST_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(carDTO)))
         .andExpect(status().isOk())
@@ -76,6 +88,7 @@ public class ParkingControllerTest {
     car1.setLicensePlate("CAR-1");
     mockMvc.perform(
         post("/api/parkings/" + testParking.getId() + "/cars")
+            .header("X-API-Token", TEST_TOKEN)
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(car1)));
 
@@ -83,6 +96,7 @@ public class ParkingControllerTest {
     car2.setLicensePlate("CAR-2");
     mockMvc.perform(
         post("/api/parkings/" + testParking.getId() + "/cars")
+            .header("X-API-Token", TEST_TOKEN)
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(car2)));
 
@@ -93,6 +107,7 @@ public class ParkingControllerTest {
     mockMvc
         .perform(
             post("/api/parkings/" + testParking.getId() + "/cars")
+                .header("X-API-Token", TEST_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(car3)))
         .andExpect(
@@ -111,6 +126,7 @@ public class ParkingControllerTest {
     car1.setLicensePlate("CAR-1");
     mockMvc.perform(
         post("/api/parkings/" + testParking.getId() + "/cars")
+            .header("X-API-Token", TEST_TOKEN)
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(car1)));
 
@@ -118,6 +134,7 @@ public class ParkingControllerTest {
     mockMvc
         .perform(
             post("/api/parkings/" + testParking.getId() + "/cars")
+                .header("X-API-Token", TEST_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(car1)))
         .andExpect(status().isBadRequest());
@@ -129,11 +146,14 @@ public class ParkingControllerTest {
     car1.setLicensePlate("CAR-1");
     mockMvc.perform(
         post("/api/parkings/" + testParking.getId() + "/cars")
+            .header("X-API-Token", TEST_TOKEN)
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(car1)));
 
     mockMvc
-        .perform(put("/api/parkings/" + testParking.getId() + "/cars/CAR-1"))
+        .perform(
+            put("/api/parkings/" + testParking.getId() + "/cars/CAR-1")
+                .header("X-API-Token", TEST_TOKEN))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.licensePlate").value("CAR-1"));
   }
